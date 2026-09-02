@@ -47,7 +47,9 @@ function renderTile(x, y, tile) {
 	} else if (tile.fire == 4) {
 		color = '#fa7';
 	}
-
+	if (tile.wall) {
+		color = '#aaa';
+	}
 
 	ctx.fillStyle = color;
 	ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2);
@@ -81,6 +83,7 @@ function Map(create) {
 const map = Map((x, y) => ({
 	x, y,
 	fire: 0,
+	wall: null,
 	_flammable: false,
 	get flammable() {
 		const entitiesOnTile = entities.find(e => e.x == this.x && e.y == this.y);
@@ -101,7 +104,14 @@ map.tile(4, 3).fire = FULL_FIRE;
 map.tile(5, 3).fire = FULL_FIRE;
 map.tile(5, 5).fire = FULL_FIRE;
 
-// map.tile(8, 2).fire = 3;
+
+for (let x = 3; x < 10; x++) {
+	map.tile(x, 10).wall = true;
+}
+for (let y = 3; y <= 10; y++) {
+	map.tile(10, y).wall = true;
+}
+
 
 map.tile(2, 2).fire = 3;
 map.tile(3, 2).fire = 1;
@@ -186,8 +196,11 @@ document.addEventListener('keydown', e => {
 				map.tile(player.x + 1, player.y).fire = FULL_FIRE;
 				break;
 			default:
-				player.x += cmd.x;
-				player.y += cmd.y;
+				const nextTile = map.tile(player.x + cmd.x, player.y + cmd.y);
+				if (nextTile.fire == 0 && !nextTile.wall) {
+					player.x += cmd.x;
+					player.y += cmd.y;
+				}
 		}
 		e.preventDefault();
 	}
