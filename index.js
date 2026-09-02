@@ -3,12 +3,32 @@ console.log("yednorosh");
 class Tile {}
 
 class Entity {
-	constructor() {
-		this.group = '';
+	constructor(group = '') {
+		this.group = group;
+		this.x = 0;
+		this.y = 0;
+	}
+	update(map) {
+		// map.tile(this.x, this.y)
 	}
 }
+
+const player = new Entity('player');
+const entities = [player];
+
+const npc = new Entity()
+npc.x = 10;
+entities.push(npc);
+
+for (let i = 0; i < 3; i++) {
+	const npc = new Entity('unicorn')
+	npc.x = 3 + i * 2;
+	entities.push(npc);
+}
+
 class Weapon {}
 const TILE_SIZE = 50;
+const HALF_TILE_SIZE = TILE_SIZE / 2;
 const FULL_FIRE = 4;
 
 const canvas = document.querySelector("canvas");
@@ -19,13 +39,13 @@ const ctx = canvas.getContext('2d');
 function renderTile(x, y, tile) {
 	let color = '#333';
 	if (tile.fire == 1) {
-		color = '#544';
+		color = '#632';
 	} else if (tile.fire == 2) {
-		color = '#866';
+		color = '#843';
 	} else if (tile.fire == 3) {
-		color = '#d99';
+		color = '#d86';
 	} else if (tile.fire == 4) {
-		color = '#faa';
+		color = '#fa7';
 	}
 
 
@@ -54,13 +74,22 @@ function Map(create) {
 				}
 			}
 		},
-		tile: (x, y) => tiles[getKey(x, y)] || (tiles[getKey(x, y)] = create()),
+		tile: (x, y) => tiles[getKey(x, y)] || (tiles[getKey(x, y)] = create(x, y)),
 	};
 	return map;
 }
-const map = Map(() => ({
+const map = Map((x, y) => ({
+	x, y,
 	fire: 0,
-	flammable: false,
+	_flammable: false,
+	get flammable() {
+		const entitiesOnTile = entities.find(e => e.x == this.x && e.y == this.y);
+		if (entitiesOnTile) return true;
+		return this._flammable;
+	},
+	set flammable(v) {
+		this._flammable = v;
+	},
 	updates: {
 		fire: 0,
 	},
@@ -81,7 +110,14 @@ map.tile(7, 1).fire = 3;
 map.tile(6, 2).flammable = true;
 
 
+function renderEntity(entity) {
+	const color = entity.group == 'player'? 'black' : entity.group == 'unicorn'? 'pink': 'grey';
+	ctx.fillStyle = color;
+	const size = 16;
+	const {x, y} = entity;
+	ctx.fillRect(x * TILE_SIZE + HALF_TILE_SIZE - size / 2, y * TILE_SIZE + HALF_TILE_SIZE - size / 2, size, size);
 
+}
 
 function render() {
 	for (let y = 0; y < map.height; y++) {
@@ -89,6 +125,9 @@ function render() {
 			renderTile(x, y, map.tile(x, y));
 		}
 	}
+	entities.forEach(entity => {
+		renderEntity(entity);
+	});
 	requestAnimationFrame(render);
 }
 
@@ -119,14 +158,37 @@ setInterval(() => {
 		}
 
 
-
 		tile.updates = {fire: 0};
 	}
 
-	for (let i = 0; i < 3; i++) {
-		const x = ~~(Math.random() * map.width);
-		const y = ~~(Math.random() * map.height);
-		map.tile(x, y).fire = FULL_FIRE;
-	}
+	// for (let i = 0; i < 3; i++) {
+	// 	const x = ~~(Math.random() * map.width);
+	// 	const y = ~~(Math.random() * map.height);
+	// 	map.tile(x, y).fire = FULL_FIRE;
+	// }
 
-}, 100)
+}, 500);
+
+const keymap = {
+	'ArrowLeft': {x: -1, y: 0},
+	'ArrowRight': {x: +1, y: 0},
+	'ArrowDown': {x: 0, y: 1},
+	'ArrowUp': {x: 0, y: -1},
+	'Space': 'fire',
+}
+document.addEventListener('keydown', e => {
+	console.log(e.code);
+	if (Object.hasOwn(keymap, e.code)) {
+		console.log("EE")
+		const cmd = keymap[e.code];
+		switch (cmd) {
+			case 'fire':
+				map.tile(player.x + 1, player.y).fire = FULL_FIRE;
+				break;
+			default:
+				player.x += cmd.x;
+				player.y += cmd.y;
+		}
+		e.preventDefault();
+	}
+});
