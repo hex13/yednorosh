@@ -14,6 +14,7 @@ class Entity {
 }
 
 const player = new Entity('player');
+player.x = 2;
 const entities = [player];
 const bullets = [];
 
@@ -24,7 +25,8 @@ entities.push(npc);
 
 for (let i = 0; i < 3; i++) {
 	const npc = new Entity('unicorn')
-	npc.x = 3 + i * 2;
+	npc.x = 3 + i;
+	npc.y = 5 + i;
 	entities.push(npc);
 }
 
@@ -102,11 +104,11 @@ const map = Map((x, y) => ({
 	},
 }));
 
-map.tile(2, 3).fire = 1;
-map.tile(3, 3).fire = FULL_FIRE;
-map.tile(4, 3).fire = FULL_FIRE;
-map.tile(5, 3).fire = FULL_FIRE;
-map.tile(5, 5).fire = FULL_FIRE;
+// map.tile(2, 3).fire = 1;
+// map.tile(3, 3).fire = FULL_FIRE;
+// map.tile(4, 3).fire = FULL_FIRE;
+// map.tile(5, 3).fire = FULL_FIRE;
+// map.tile(5, 5).fire = FULL_FIRE;
 
 
 for (let x = 3; x < 10; x++) {
@@ -117,11 +119,11 @@ for (let y = 3; y <= 10; y++) {
 }
 
 
-map.tile(2, 2).fire = 3;
-map.tile(3, 2).fire = 1;
-// map.tile(3, 3).fire = 1;
-map.tile(7, 1).fire = 3;
-map.tile(6, 2).flammable = true;
+// map.tile(2, 2).fire = 3;
+// map.tile(3, 2).fire = 1;
+// // map.tile(3, 3).fire = 1;
+// map.tile(7, 1).fire = 3;
+// map.tile(6, 2).flammable = true;
 
 
 function renderEntity(entity) {
@@ -195,7 +197,7 @@ setInterval(() => {
 	// 	map.tile(x, y).fire = FULL_FIRE;
 	// }
 
-}, 500);
+}, 600);
 
 const keymap = {
 	'ArrowLeft': {x: -1, y: 0},
@@ -205,7 +207,8 @@ const keymap = {
 	'Space': 'fire',
 	'ControlLeft': 'shoot',
 }
-document.addEventListener('keydown', e => {
+
+function handleKeyDown(e) {
 	console.log(e.code);
 	if (Object.hasOwn(keymap, e.code)) {
 		console.log("EE")
@@ -217,7 +220,7 @@ document.addEventListener('keydown', e => {
 				bullets.push(bullet);
 				break;
 			case 'fire':
-				map.tile(player.x + 1, player.y).fire = FULL_FIRE;
+				map.tile(player.x + 2, player.y).fire = FULL_FIRE;
 				break;
 			default:
 				const nextTile = map.tile(player.x + cmd.x, player.y + cmd.y);
@@ -228,4 +231,11 @@ document.addEventListener('keydown', e => {
 		}
 		e.preventDefault();
 	}
-});
+};
+
+document.addEventListener('keydown', handleKeyDown);
+
+const input = ['ArrowLeft', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'Space', 'ArrowDown', 'ArrowDown'];
+setInterval(() => {
+	handleKeyDown({code: input.shift()});
+}, 200);
