@@ -15,6 +15,8 @@ class Entity {
 
 const player = new Entity('player');
 const entities = [player];
+const bullets = [];
+
 
 const npc = new Entity()
 npc.x = 10;
@@ -51,6 +53,8 @@ function renderTile(x, y, tile) {
 		color = '#aaa';
 	}
 
+	ctx.fillStyle = 'black';
+	ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 	ctx.fillStyle = color;
 	ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2);
 }
@@ -126,10 +130,18 @@ function renderEntity(entity) {
 	const size = 16;
 	const {x, y} = entity;
 	ctx.fillRect(x * TILE_SIZE + HALF_TILE_SIZE - size / 2, y * TILE_SIZE + HALF_TILE_SIZE - size / 2, size, size);
+}
+
+function renderBullet(obj) {
+	const color = 'yellow';
+	ctx.fillStyle = color;
+	const size = 4;
+	const {x, y} = obj;
+	ctx.fillRect(~~(x * TILE_SIZE + HALF_TILE_SIZE - size / 2), ~~(y * TILE_SIZE + HALF_TILE_SIZE - size / 2), size, size);
 
 }
 
-function render() {
+function render(delta) {
 	for (let y = 0; y < map.height; y++) {
 		for (let x = 0; x < map.width; x++) {
 			renderTile(x, y, map.tile(x, y));
@@ -137,6 +149,12 @@ function render() {
 	}
 	entities.forEach(entity => {
 		renderEntity(entity);
+	});
+	bullets.forEach(bullet => {
+		console.log(bullet);
+		bullet.x += bullet.vx * 0.1;
+		bullet.y += bullet.vy * 0.1;
+		renderBullet(bullet);
 	});
 	requestAnimationFrame(render);
 }
@@ -185,6 +203,7 @@ const keymap = {
 	'ArrowDown': {x: 0, y: 1},
 	'ArrowUp': {x: 0, y: -1},
 	'Space': 'fire',
+	'ControlLeft': 'shoot',
 }
 document.addEventListener('keydown', e => {
 	console.log(e.code);
@@ -192,6 +211,11 @@ document.addEventListener('keydown', e => {
 		console.log("EE")
 		const cmd = keymap[e.code];
 		switch (cmd) {
+			case 'shoot':
+				// map.tile(player.x + 1, player.y).fire = FULL_FIRE;
+				const bullet = {x: player.x, y: player.y, vx: 1, vy: 0};
+				bullets.push(bullet);
+				break;
 			case 'fire':
 				map.tile(player.x + 1, player.y).fire = FULL_FIRE;
 				break;
