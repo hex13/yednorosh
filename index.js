@@ -31,15 +31,45 @@ images.fire.src = "fire.png";
 images.fireSmall = new Image();
 images.fireSmall.src = "fire-small.png";
 
+function mix(a, b, t) {
+	return a * (1 - t) + b * t;
+}
 
 class Entity {
 	constructor(group = '') {
 		this.group = group;
 		this.x = 0;
 		this.y = 0;
+		this.prevX = this.x;
+		this.prevY = this.y;
 		this.dir = {x: 1, y: 0};
+		this.transition = 1;
+		this.speed = 0.003;
+	}
+	move(nx, ny) {
+		this.prevX = this.x;
+		this.prevY = this.y;
+		this.x = nx;
+		this.y = ny;
+		this.transition = 0.0;
+		// let interval = setInterval(() => {
+		// 	this.transition += 0.1;
+		// 	if (this.transition >= 1) {
+		// 		this.transition = 1;
+		// 		clearInterval(interval);
+		// 	}
+		// });
+	}
+	screenX() {
+		return mix(this.prevX, this.x, this.transition);
+	}
+	screenY() {
+		return mix(this.prevY, this.y, this.transition);
 	}
 	update(map) {
+		if (this.transition < 1.0) {
+			return;
+		}
 		// map.tile(this.x, this.y)
 		switch (this.group) {
 			case 'unicorn': {
@@ -49,8 +79,7 @@ class Entity {
 					this.dir.x *= -1;
 					this.dir.y *= -1;
 				} else {
-					this.x = nx;
-					this.y = ny;
+					this.move(nx, ny);
 				}
 
 				break;
@@ -64,6 +93,7 @@ class Entity {
 const player = new Entity('player');
 player.x = 0;
 player.y = 0;
+player.speed = 0.02;
 const entities = [player];
 const bullets = [];
 
@@ -235,7 +265,8 @@ function renderEntity(entity) {
 	const color = entity.group == 'player'? 'black' : entity.group == 'unicorn'? 'pink': 'grey';
 	ctx.fillStyle = color;
 	const size = 16;
-	const {x, y} = entity;
+	const x = entity.screenX();
+	const y = entity.screenY();
 
 	if (entity.group == 'player') {
 		const frame = animLoopCounter % 3;
@@ -245,7 +276,6 @@ function renderEntity(entity) {
 		if (entity.dir.x < 0) {
 			frame += 2;
 		}
-
 		ctx.drawImage(images.unicorn, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 
 	} else {
@@ -262,7 +292,11 @@ function renderBullet(obj) {
 
 }
 
-function render(delta) {
+let lastTime;
+function render(time) {
+	const delta = lastTime? time - lastTime : 16;
+	lastTime = time;
+
 	for (let y = 0; y < map.height; y++) {
 		for (let x = 0; x < map.width; x++) {
 			renderTile(x, y, map.tile(x, y));
@@ -270,6 +304,10 @@ function render(delta) {
 	}
 	entities.forEach(entity => {
 		renderEntity(entity);
+		entity.transition += delta * entity.speed;
+		if (entity.transition >= 1.0) {
+			entity.transition = 1.0;
+		}
 	});
 	bullets.forEach(bullet => {
 		console.log(bullet);
@@ -362,8 +400,7 @@ function handleKeyDown(e) {
 						}
 					}
 					if (nextTile.fire == 0 && canEnter) {
-						player.x += cmd.x;
-						player.y += cmd.y;
+						player.move(player.x + cmd.x, player.y + cmd.y);
 					}
 
 				}
@@ -384,11 +421,11 @@ document.addEventListener('keyup', handleKeyUp);
 // const input = ['ArrowLeft', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'Space', 'ArrowDown', 'ArrowDown'];
 const input = ['ArrowDown', 'ArrowDown', 'ArrowRight', 'ArrowRight', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'Space'];
 setInterval(() => {
-	handleKeyDown({code: input.shift()});
+	// handleKeyDown({code: input.shift()});
 	entities.forEach(entity => {
 		entity.update(map);
 	})
-}, 300);
+}, 700);
 
 setInterval(() => {
 	animLoopCounter += 1;
