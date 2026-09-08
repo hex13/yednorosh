@@ -19,6 +19,9 @@ images.wall.src = "wall.png";
 images.floor = new Image();
 images.floor.src = "floor.png";
 
+images.poo = new Image();
+images.poo.src = "poo.png";
+
 
 class Entity {
 	constructor(group = '') {
@@ -86,6 +89,9 @@ function renderTile(x, y, tile) {
 	} else if (!rendered) {
 		const frame = 0;
 		ctx.drawImage(images.floor, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+		if (tile.poo) {
+			ctx.drawImage(images.poo, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+		}
 	}
 }
 
@@ -148,6 +154,8 @@ for (let y = 3; y <= 10; y++) {
 
 map.tile(13, 13).crate = true;
 map.tile(15, 13).crate = true;
+
+map.tile(2, 2).poo = true;
 console.log("tiles", map);
 
 // map.tile(2, 2).fire = 3;
@@ -276,6 +284,10 @@ function handleKeyDown(e) {
 					} else {
 						nextTile.crate = false;
 						crateNextTile.crate = true;
+						if (crateNextTile.poo) {
+							crateNextTile.poo = false;
+							map.tile(crateNextTile.x + cmd.x, crateNextTile.y + cmd.y).poo = true;
+						}
 					}
 				}
 				if (nextTile.fire == 0 && canEnter) {
