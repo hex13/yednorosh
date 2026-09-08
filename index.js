@@ -4,32 +4,21 @@ console.log("yednorosh");
 
 class Tile {}
 
+const images = Object.fromEntries(Object.entries({
+	player: 'player.png',
+	unicorn: 'unicorn.png',
+	crate: 'crate.png',
+	wall: 'wall.png',
+	floor: 'floor.png',
+	poo: 'poo.png',
+	fire: 'fire.png',
+	fireSmall: 'fire-small.png',
+}).map(([name, src]) => {
+	const img = new Image();
+	img.src = src;
+	return [name, img];
+}));
 
-const images = {};
-images.player = new Image();
-images.player.src = "player.png";
-
-images.unicorn = new Image();
-images.unicorn.src = "unicorn.png";
-
-images.crate = new Image();
-images.crate.src = "crate.png";
-
-images.wall = new Image();
-images.wall.src = "wall.png";
-
-images.floor = new Image();
-images.floor.src = "floor.png";
-
-images.poo = new Image();
-images.poo.src = "poo.png";
-
-
-images.fire = new Image();
-images.fire.src = "fire.png";
-
-images.fireSmall = new Image();
-images.fireSmall.src = "fire-small.png";
 
 function mix(a, b, t) {
 	return a * (1 - t) + b * t;
@@ -160,7 +149,7 @@ function renderTile(x, y, tile) {
 		const frame = animLoopCounter % 3;
 		ctx.drawImage(images.fireSmall, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE * 0.8, TILE_SIZE * 0.8)
 	}
-	
+
 }
 
 function Map(create) {
