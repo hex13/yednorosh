@@ -44,7 +44,8 @@ class Entity {
 }
 
 const player = new Entity('player');
-player.x = 2;
+player.x = 0;
+player.y = 0;
 const entities = [player];
 const bullets = [];
 
@@ -142,6 +143,7 @@ const map = Map((x, y) => ({
 	wall: null,
 	_flammable: false,
 	get flammable() {
+		if (this.poo) return true;
 		const entitiesOnTile = entities.find(e => e.x == this.x && e.y == this.y);
 		if (entitiesOnTile) return true;
 		return this._flammable;
@@ -160,6 +162,14 @@ const map = Map((x, y) => ({
 // map.tile(5, 3).fire = FULL_FIRE;
 // map.tile(5, 5).fire = FULL_FIRE;
 
+function burn(tile) {
+	tile.fire = FULL_FIRE;
+	if (tile.poo) {
+		setTimeout(() => {
+			tile.poo = false;
+		}, 1000);
+	}
+}
 
 for (let x = 3; x < 10; x++) {
 	map.tile(x, 10).wall = true;
@@ -170,6 +180,7 @@ for (let y = 3; y <= 10; y++) {
 
 map.tile(13, 13).crate = true;
 map.tile(15, 13).crate = true;
+map.tile(1, 2).crate = true;
 
 map.tile(2, 2).poo = true;
 console.log("tiles", map);
@@ -250,18 +261,14 @@ setInterval(() => {
 		const tile = map.tile(x, y);
 		tile.fire += Math.sign(tile.updates.fire);
 		if (tile.updates.fire > 0) {
-			if (tile.flammable) tile.fire = FULL_FIRE;
+			if (tile.flammable) {
+				burn(tile);
+			}
 		}
 
 
 		tile.updates = {fire: 0};
 	}
-
-	// for (let i = 0; i < 3; i++) {
-	// 	const x = ~~(Math.random() * map.width);
-	// 	const y = ~~(Math.random() * map.height);
-	// 	map.tile(x, y).fire = FULL_FIRE;
-	// }
 
 }, 1200);
 
@@ -286,7 +293,7 @@ function handleKeyDown(e) {
 				bullets.push(bullet);
 				break;
 			case 'fire':
-				map.tile(player.x + 2, player.y).fire = FULL_FIRE;
+				burn(map.tile(player.x + 2, player.y));
 				break;
 			default:
 				const nextTile = map.tile(player.x + cmd.x, player.y + cmd.y);
@@ -317,10 +324,11 @@ function handleKeyDown(e) {
 
 document.addEventListener('keydown', handleKeyDown);
 
-const input = ['ArrowLeft', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'Space', 'ArrowDown', 'ArrowDown'];
+// const input = ['ArrowLeft', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'Space', 'ArrowDown', 'ArrowDown'];
+const input = ['ArrowDown', 'ArrowDown', 'ArrowRight', 'ArrowRight', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'Space'];
 setInterval(() => {
 	handleKeyDown({code: input.shift()});
-}, 200);
+}, 300);
 
 setInterval(() => {
 	animLoopCounter += 1;
