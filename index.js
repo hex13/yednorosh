@@ -152,14 +152,15 @@ function renderTile(x, y, tile) {
 		if (tile.poo) {
 			ctx.drawImage(images.poo, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 		}
-		if (tile.fire == FULL_FIRE) {
-			const frame = animLoopCounter % 3;
-			ctx.drawImage(images.fire, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-		} else if (tile.fire) {
-			const frame = animLoopCounter % 3;
-			ctx.drawImage(images.fireSmall, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE * 0.8, TILE_SIZE * 0.8)
-		}
 	}
+	if (tile.fire == FULL_FIRE) {
+		const frame = animLoopCounter % 3;
+		ctx.drawImage(images.fire, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+	} else if (tile.fire) {
+		const frame = animLoopCounter % 3;
+		ctx.drawImage(images.fireSmall, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE * 0.8, TILE_SIZE * 0.8)
+	}
+	
 }
 
 function Map(create) {
@@ -217,12 +218,14 @@ const map = Map((x, y) => ({
 
 function burn(tile) {
 	tile.fire = 1;
-	if (tile.poo) {
+	if (tile.poo || tile.crate) {
 		setTimeout(() => {
 			tile.poo = false;
+			tile.crate = false;
 		}, 1000);
 		tile.fire = FULL_FIRE;
 	}
+
 	const entity = findEntity(tile);
 	if (entity && entity.group == 'unicorn') {
 		entity.dead = true;
