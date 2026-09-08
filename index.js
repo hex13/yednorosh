@@ -23,6 +23,13 @@ images.poo = new Image();
 images.poo.src = "poo.png";
 
 
+images.fire = new Image();
+images.fire.src = "fire.png";
+
+images.fireSmall = new Image();
+images.fireSmall.src = "fire-small.png";
+
+
 class Entity {
 	constructor(group = '') {
 		this.group = group;
@@ -54,7 +61,7 @@ for (let i = 0; i < 3; i++) {
 class Weapon {}
 const TILE_SIZE = 80;
 const HALF_TILE_SIZE = TILE_SIZE / 2;
-const FULL_FIRE = 4;
+const FULL_FIRE = 2;
 
 const canvas = document.querySelector("canvas");
 canvas.width = window.innerWidth;
@@ -81,16 +88,23 @@ function renderTile(x, y, tile) {
 		color = '#fa7';
 	}
 
-	if (tile.fire) {
+	if (0 && tile.fire) {
 		ctx.fillStyle = '#2b2b2b';
 		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 		ctx.fillStyle = color;
-		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2);
+		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2);		
 	} else if (!rendered) {
 		const frame = 0;
 		ctx.drawImage(images.floor, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 		if (tile.poo) {
 			ctx.drawImage(images.poo, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+		}
+		if (tile.fire == FULL_FIRE) {
+			const frame = animLoopCounter % 3;
+			ctx.drawImage(images.fire, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+		} else if (tile.fire) {
+			const frame = animLoopCounter % 3;
+			ctx.drawImage(images.fireSmall, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE * 0.8, TILE_SIZE * 0.8)			
 		}
 	}
 }
@@ -247,7 +261,7 @@ setInterval(() => {
 	// 	map.tile(x, y).fire = FULL_FIRE;
 	// }
 
-}, 600);
+}, 1200);
 
 const keymap = {
 	'ArrowLeft': {x: -1, y: 0},
