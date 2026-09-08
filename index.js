@@ -37,9 +37,27 @@ class Entity {
 		this.group = group;
 		this.x = 0;
 		this.y = 0;
+		this.dir = {x: 1, y: 0};
 	}
 	update(map) {
 		// map.tile(this.x, this.y)
+		switch (this.group) {
+			case 'unicorn': {
+				const nx = this.x + this.dir.x;
+				const ny = this.y + this.dir.y;
+				if (!map.inBounds(nx, ny) || map.tile(nx, ny).wall) {
+					this.dir.x *= -1;
+					this.dir.y *= -1;
+				} else {
+					this.x = nx;
+					this.y = ny;
+				}
+
+				break;
+			}
+			default:
+				break;
+		}
 	}
 }
 
@@ -95,7 +113,7 @@ function renderTile(x, y, tile) {
 		ctx.fillStyle = '#2b2b2b';
 		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 		ctx.fillStyle = color;
-		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2);		
+		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2);
 	} else if (!rendered) {
 		const frame = 0;
 		ctx.drawImage(images.floor, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
@@ -107,7 +125,7 @@ function renderTile(x, y, tile) {
 			ctx.drawImage(images.fire, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 		} else if (tile.fire) {
 			const frame = animLoopCounter % 3;
-			ctx.drawImage(images.fireSmall, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE * 0.8, TILE_SIZE * 0.8)			
+			ctx.drawImage(images.fireSmall, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE * 0.8, TILE_SIZE * 0.8)
 		}
 	}
 }
@@ -118,6 +136,9 @@ function Map(create) {
 	const map = {
 		width: 20,
 		height: 15,
+		inBounds(x, y) {
+			return x >= 0 && y >= 0 && x < this.width && y < this.height;
+		},
 		[Symbol.iterator]: function* () {
 			for (let y = 0; y < map.height; y++) {
 				for (let x = 0; x < map.width; x++) {
@@ -216,13 +237,17 @@ function renderEntity(entity) {
 	const size = 16;
 	const {x, y} = entity;
 
-	// const screenX =
 	if (entity.group == 'player') {
 		const frame = animLoopCounter % 3;
 		ctx.drawImage(images.player, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 	} else if (entity.group == 'unicorn') {
-		const frame = animLoopCounter % 2;
+		let frame = animLoopCounter % 2;
+		if (entity.dir.x < 0) {
+			frame += 2;
+		}
+
 		ctx.drawImage(images.unicorn, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+
 	} else {
 		ctx.fillRect(x * TILE_SIZE + HALF_TILE_SIZE - size / 2, y * TILE_SIZE + HALF_TILE_SIZE - size / 2, size, size);
 	}
@@ -317,7 +342,7 @@ function handleKeyDown(e) {
 			default:
 				if (keyboardState.Space) {
 					burn(map.tile(player.x + cmd.x, player.y + cmd.y));
-					burn(map.tile(player.x + cmd.x * 2, player.y + cmd.y * 2));					
+					burn(map.tile(player.x + cmd.x * 2, player.y + cmd.y * 2));
 				} else {
 					const nextTile = map.tile(player.x + cmd.x, player.y + cmd.y);
 					let canEnter = !nextTile.wall;
@@ -343,7 +368,7 @@ function handleKeyDown(e) {
 
 				}
 		}
-		e.preventDefault();
+		e.preventDefault && e.preventDefault();
 	}
 };
 
@@ -360,6 +385,9 @@ document.addEventListener('keyup', handleKeyUp);
 const input = ['ArrowDown', 'ArrowDown', 'ArrowRight', 'ArrowRight', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'Space'];
 setInterval(() => {
 	handleKeyDown({code: input.shift()});
+	entities.forEach(entity => {
+		entity.update(map);
+	})
 }, 300);
 
 setInterval(() => {
