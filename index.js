@@ -16,6 +16,10 @@ images.crate.src = "crate.png";
 images.wall = new Image();
 images.wall.src = "wall.png";
 
+images.floor = new Image();
+images.floor.src = "floor.png";
+
+
 class Entity {
 	constructor(group = '') {
 		this.group = group;
@@ -57,7 +61,7 @@ ctx.imageSmoothingEnabled = false;
 
 let animLoopCounter = 0;
 function renderTile(x, y, tile) {
-	let color = '#333';
+	let color = '#432';
 	let rendered = false;
 	if (tile.crate || tile.wall) {
 		const frame = 0;
@@ -74,11 +78,14 @@ function renderTile(x, y, tile) {
 		color = '#fa7';
 	}
 
-	if (!rendered) {
-		ctx.fillStyle = 'black';
+	if (tile.fire) {
+		ctx.fillStyle = '#2b2b2b';
 		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 		ctx.fillStyle = color;
 		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2);
+	} else if (!rendered) {
+		const frame = 0;
+		ctx.drawImage(images.floor, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 	}
 }
 
