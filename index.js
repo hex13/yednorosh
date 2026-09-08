@@ -144,7 +144,7 @@ const map = Map((x, y) => ({
 	_flammable: false,
 	get flammable() {
 		if (this.poo) return true;
-		const entitiesOnTile = entities.find(e => e.x == this.x && e.y == this.y);
+		const entitiesOnTile = findEntity(this);
 		if (entitiesOnTile) return true;
 		return this._flammable;
 	},
@@ -168,6 +168,22 @@ function burn(tile) {
 		setTimeout(() => {
 			tile.poo = false;
 		}, 1000);
+	}
+	const entity = findEntity(tile);
+	if (entity.group == 'unicorn') {
+		setTimeout(() => {
+			removeEntity(entity);
+		}, 1000);
+	}
+}
+function findEntity(tile) {
+ 	return entities.find(e => e.x == tile.x && e.y == tile.y);
+}
+
+function removeEntity(entity) {
+	const idx = entities.indexOf(entity);
+	if (idx != -1) {
+		entities.splice(idx, 1);
 	}
 }
 
