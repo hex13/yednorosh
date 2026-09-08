@@ -2,6 +2,15 @@ console.log("yednorosh");
 
 class Tile {}
 
+
+const images = {};
+images.player = new Image();
+images.player.src = "player.png";
+
+images.unicorn = new Image();
+images.unicorn.src = "unicorn.png";
+
+
 class Entity {
 	constructor(group = '') {
 		this.group = group;
@@ -31,7 +40,7 @@ for (let i = 0; i < 3; i++) {
 }
 
 class Weapon {}
-const TILE_SIZE = 50;
+const TILE_SIZE = 100;
 const HALF_TILE_SIZE = TILE_SIZE / 2;
 const FULL_FIRE = 4;
 
@@ -39,7 +48,9 @@ const canvas = document.querySelector("canvas");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
 
+let animLoopCounter = 0;
 function renderTile(x, y, tile) {
 	let color = '#333';
 	if (tile.fire == 1) {
@@ -131,7 +142,17 @@ function renderEntity(entity) {
 	ctx.fillStyle = color;
 	const size = 16;
 	const {x, y} = entity;
-	ctx.fillRect(x * TILE_SIZE + HALF_TILE_SIZE - size / 2, y * TILE_SIZE + HALF_TILE_SIZE - size / 2, size, size);
+
+	// const screenX = 
+	if (entity.group == 'player') {
+		const frame = animLoopCounter % 3;
+		ctx.drawImage(images.player, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+	} else if (entity.group == 'unicorn') {
+		const frame = animLoopCounter % 2;
+		ctx.drawImage(images.unicorn, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+	} else {
+		ctx.fillRect(x * TILE_SIZE + HALF_TILE_SIZE - size / 2, y * TILE_SIZE + HALF_TILE_SIZE - size / 2, size, size);
+	}
 }
 
 function renderBullet(obj) {
@@ -159,6 +180,7 @@ function render(delta) {
 		renderBullet(bullet);
 	});
 	requestAnimationFrame(render);
+	// animLoopCounter += 1;
 }
 
 requestAnimationFrame(render);
@@ -238,4 +260,8 @@ document.addEventListener('keydown', handleKeyDown);
 const input = ['ArrowLeft', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'Space', 'ArrowDown', 'ArrowDown'];
 setInterval(() => {
 	handleKeyDown({code: input.shift()});
+}, 200);
+
+setInterval(() => {
+	animLoopCounter += 1;
 }, 200);
