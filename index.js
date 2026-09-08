@@ -13,6 +13,8 @@ images.unicorn.src = "unicorn.png";
 images.crate = new Image();
 images.crate.src = "crate.png";
 
+images.wall = new Image();
+images.wall.src = "wall.png";
 
 class Entity {
 	constructor(group = '') {
@@ -57,9 +59,10 @@ let animLoopCounter = 0;
 function renderTile(x, y, tile) {
 	let color = '#333';
 	let rendered = false;
-	if (tile.crate) {
+	if (tile.crate || tile.wall) {
 		const frame = 0;
-		ctx.drawImage(images.crate, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+		const img = tile.crate? images.crate : tile.wall? images.wall : null;
+		ctx.drawImage(img, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 		rendered = true;
 	} else if (tile.fire == 1) {
 		color = '#632';
@@ -69,9 +72,6 @@ function renderTile(x, y, tile) {
 		color = '#d86';
 	} else if (tile.fire == 4) {
 		color = '#fa7';
-	}
-	if (tile.wall) {
-		color = '#aaa';
 	}
 
 	if (!rendered) {
