@@ -45,6 +45,7 @@ class Entity {
 		this.dir = {x: 1, y: 0};
 		this.transition = 1;
 		this.speed = 0.003;
+		this.dead = false;
 	}
 	move(nx, ny) {
 		this.prevX = this.x;
@@ -67,7 +68,7 @@ class Entity {
 		return mix(this.prevY, this.y, this.transition);
 	}
 	update(map) {
-		if (this.transition < 1.0) {
+		if (this.transition < 1.0 || this.dead) {
 			return;
 		}
 		// map.tile(this.x, this.y)
@@ -75,7 +76,8 @@ class Entity {
 			case 'unicorn': {
 				const nx = this.x + this.dir.x;
 				const ny = this.y + this.dir.y;
-				if (!map.inBounds(nx, ny) || map.tile(nx, ny).wall) {
+				const nextTile = map.tile(nx, ny);
+				if (!map.inBounds(nx, ny) || nextTile.wall || nextTile.crate) {
 					this.dir.x *= -1;
 					this.dir.y *= -1;
 				} else {
@@ -223,6 +225,7 @@ function burn(tile) {
 	}
 	const entity = findEntity(tile);
 	if (entity && entity.group == 'unicorn') {
+		entity.dead = true;
 		setTimeout(() => {
 			removeEntity(entity);
 		}, 1000);
@@ -272,9 +275,9 @@ function renderEntity(entity) {
 		const frame = animLoopCounter % 3;
 		ctx.drawImage(images.player, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 	} else if (entity.group == 'unicorn') {
-		let frame = animLoopCounter % 2;
+		let frame = entity.dead? 2 : animLoopCounter % 2;
 		if (entity.dir.x < 0) {
-			frame += 2;
+			frame += 3;
 		}
 		ctx.drawImage(images.unicorn, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 
@@ -388,7 +391,7 @@ function handleKeyDown(e) {
 						const crateNextX = player.x + cmd.x * 2;
 						const crateNextY = player.y + cmd.y * 2;
 						const crateNextTile = map.tile(crateNextX, crateNextY);
-						if (crateNextTile.wall || crateNextTile.crate) {
+						if (crateNextTile.wall || crateNextTile.crate || findEntity(crateNextTile)) {
 							canEnter = false;
 						} else {
 							nextTile.crate = false;
