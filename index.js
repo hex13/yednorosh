@@ -163,17 +163,19 @@ const map = Map((x, y) => ({
 // map.tile(5, 5).fire = FULL_FIRE;
 
 function burn(tile) {
-	tile.fire = FULL_FIRE;
+	tile.fire = 1;
 	if (tile.poo) {
 		setTimeout(() => {
 			tile.poo = false;
 		}, 1000);
+		tile.fire = FULL_FIRE;
 	}
 	const entity = findEntity(tile);
-	if (entity.group == 'unicorn') {
+	if (entity && entity.group == 'unicorn') {
 		setTimeout(() => {
 			removeEntity(entity);
 		}, 1000);
+		tile.fire = FULL_FIRE;
 	}
 }
 function findEntity(tile) {
@@ -297,9 +299,11 @@ const keymap = {
 	'ControlLeft': 'shoot',
 }
 
+const keyboardState = {}
+
 function handleKeyDown(e) {
-	console.log(e.code);
 	if (Object.hasOwn(keymap, e.code)) {
+		keyboardState[e.code] = true;
 		console.log("EE")
 		const cmd = keymap[e.code];
 		switch (cmd) {
@@ -309,36 +313,48 @@ function handleKeyDown(e) {
 				bullets.push(bullet);
 				break;
 			case 'fire':
-				burn(map.tile(player.x + 2, player.y));
 				break;
 			default:
-				const nextTile = map.tile(player.x + cmd.x, player.y + cmd.y);
-				let canEnter = !nextTile.wall;
-				if (nextTile.crate) {
-					const crateNextX = player.x + cmd.x * 2;
-					const crateNextY = player.y + cmd.y * 2;
-					const crateNextTile = map.tile(crateNextX, crateNextY);
-					if (crateNextTile.wall || crateNextTile.crate) {
-						canEnter = false;
-					} else {
-						nextTile.crate = false;
-						crateNextTile.crate = true;
-						if (crateNextTile.poo) {
-							crateNextTile.poo = false;
-							map.tile(crateNextTile.x + cmd.x, crateNextTile.y + cmd.y).poo = true;
+				if (keyboardState.Space) {
+					burn(map.tile(player.x + cmd.x, player.y + cmd.y));
+					burn(map.tile(player.x + cmd.x * 2, player.y + cmd.y * 2));					
+				} else {
+					const nextTile = map.tile(player.x + cmd.x, player.y + cmd.y);
+					let canEnter = !nextTile.wall;
+					if (nextTile.crate) {
+						const crateNextX = player.x + cmd.x * 2;
+						const crateNextY = player.y + cmd.y * 2;
+						const crateNextTile = map.tile(crateNextX, crateNextY);
+						if (crateNextTile.wall || crateNextTile.crate) {
+							canEnter = false;
+						} else {
+							nextTile.crate = false;
+							crateNextTile.crate = true;
+							if (crateNextTile.poo) {
+								crateNextTile.poo = false;
+								map.tile(crateNextTile.x + cmd.x, crateNextTile.y + cmd.y).poo = true;
+							}
 						}
 					}
-				}
-				if (nextTile.fire == 0 && canEnter) {
-					player.x += cmd.x;
-					player.y += cmd.y;
+					if (nextTile.fire == 0 && canEnter) {
+						player.x += cmd.x;
+						player.y += cmd.y;
+					}
+
 				}
 		}
 		e.preventDefault();
 	}
 };
 
+function handleKeyUp(e) {
+	if (Object.hasOwn(keymap, e.code)) {
+		keyboardState[e.code] = false;
+	}
+
+}
 document.addEventListener('keydown', handleKeyDown);
+document.addEventListener('keyup', handleKeyUp);
 
 // const input = ['ArrowLeft', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'Space', 'ArrowDown', 'ArrowDown'];
 const input = ['ArrowDown', 'ArrowDown', 'ArrowRight', 'ArrowRight', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'Space'];
