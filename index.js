@@ -10,6 +10,9 @@ images.player.src = "player.png";
 images.unicorn = new Image();
 images.unicorn.src = "unicorn.png";
 
+images.crate = new Image();
+images.crate.src = "crate.png";
+
 
 class Entity {
 	constructor(group = '') {
@@ -40,7 +43,7 @@ for (let i = 0; i < 3; i++) {
 }
 
 class Weapon {}
-const TILE_SIZE = 100;
+const TILE_SIZE = 80;
 const HALF_TILE_SIZE = TILE_SIZE / 2;
 const FULL_FIRE = 4;
 
@@ -53,7 +56,12 @@ ctx.imageSmoothingEnabled = false;
 let animLoopCounter = 0;
 function renderTile(x, y, tile) {
 	let color = '#333';
-	if (tile.fire == 1) {
+	let rendered = false;
+	if (tile.crate) {
+		const frame = 0;
+		ctx.drawImage(images.crate, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+		rendered = true;
+	} else if (tile.fire == 1) {
 		color = '#632';
 	} else if (tile.fire == 2) {
 		color = '#843';
@@ -66,10 +74,12 @@ function renderTile(x, y, tile) {
 		color = '#aaa';
 	}
 
-	ctx.fillStyle = 'black';
-	ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-	ctx.fillStyle = color;
-	ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2);
+	if (!rendered) {
+		ctx.fillStyle = 'black';
+		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+		ctx.fillStyle = color;
+		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2);
+	}
 }
 
 function Map(create) {
@@ -129,6 +139,9 @@ for (let y = 3; y <= 10; y++) {
 	map.tile(10, y).wall = true;
 }
 
+map.tile(13, 13).crate = true;
+map.tile(15, 13).crate = true;
+console.log("tiles", map);
 
 // map.tile(2, 2).fire = 3;
 // map.tile(3, 2).fire = 1;
@@ -143,7 +156,7 @@ function renderEntity(entity) {
 	const size = 16;
 	const {x, y} = entity;
 
-	// const screenX = 
+	// const screenX =
 	if (entity.group == 'player') {
 		const frame = animLoopCounter % 3;
 		ctx.drawImage(images.player, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
@@ -246,7 +259,19 @@ function handleKeyDown(e) {
 				break;
 			default:
 				const nextTile = map.tile(player.x + cmd.x, player.y + cmd.y);
-				if (nextTile.fire == 0 && !nextTile.wall) {
+				let canEnter = !nextTile.wall;
+				if (nextTile.crate) {
+					const crateNextX = player.x + cmd.x * 2;
+					const crateNextY = player.y + cmd.y * 2;
+					const crateNextTile = map.tile(crateNextX, crateNextY);
+					if (crateNextTile.wall || crateNextTile.crate) {
+						canEnter = false;
+					} else {
+						nextTile.crate = false;
+						crateNextTile.crate = true;
+					}
+				}
+				if (nextTile.fire == 0 && canEnter) {
 					player.x += cmd.x;
 					player.y += cmd.y;
 				}
