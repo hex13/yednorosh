@@ -1,4 +1,6 @@
+"use strict";
 console.log("yednorosh");
+
 
 class Tile {}
 
