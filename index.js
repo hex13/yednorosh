@@ -74,6 +74,10 @@ class Entity {
 					this.dir.y *= -1;
 				} else {
 					this.move(nx, ny);
+					if (nextTile.mine) {
+						burn(nextTile);
+						nextTile.mine = false;
+					}
 				}
 
 				break;
@@ -388,6 +392,7 @@ const keymap = {
 	'ArrowUp': {x: 0, y: -1},
 	'Space': 'fire',
 	'ControlLeft': 'shoot',
+	'KeyM': 'mine',
 }
 
 const keyboardState = {}
@@ -404,6 +409,9 @@ function handleKeyDown(e) {
 				bullets.push(bullet);
 				break;
 			case 'fire':
+				break;
+			case 'mine':
+				map.tile(player.x, player.y).mine = true;
 				break;
 			default:
 				if (keyboardState.Space) {
@@ -429,6 +437,10 @@ function handleKeyDown(e) {
 								crateNextTile.poo = false;
 								map.tile(crateNextTile.x + cmd.x, crateNextTile.y + cmd.y).poo = true;
 							}
+							if (crateNextTile.mine) {
+								crateNextTile.mine = false;
+								map.tile(crateNextTile.x + cmd.x, crateNextTile.y + cmd.y).mine = true;
+							}							
 						}
 					}
 					if (nextTile.fire == 0 && canEnter) {
