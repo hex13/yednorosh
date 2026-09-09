@@ -15,6 +15,7 @@ const images = Object.fromEntries(Object.entries({
 	fireSmall: 'fire-small.png',
 	mine: 'mine.png',
 	button: 'button.png',
+	blockade: 'blockade.png',
 }).map(([name, src]) => {
 	const img = new Image();
 	img.src = src;
@@ -68,7 +69,7 @@ class Entity {
 				const nx = this.x + this.dir.x;
 				const ny = this.y + this.dir.y;
 				const nextTile = map.tile(nx, ny);
-				if (!map.inBounds(nx, ny) || nextTile.wall || nextTile.crate) {
+				if (!map.inBounds(nx, ny) || nextTile.wall || nextTile.blockade || nextTile.crate) {
 					this.dir.x *= -1;
 					this.dir.y *= -1;
 				} else {
@@ -147,8 +148,12 @@ function renderTile(x, y, tile) {
 			ctx.drawImage(images.mine, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 		}
 		if (tile.button) {
-			frame = animLoopCounter % 6;
+			frame = map.tile(tile.target.x, tile.target.y).blockade? animLoopCounter % 6 : 6;
 			ctx.drawImage(images.button, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+		}
+		if (tile.blockade) {
+			frame = animLoopCounter % 3;
+			ctx.drawImage(images.blockade, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 		}
 
 	}
@@ -259,6 +264,8 @@ map.tile(1, 2).crate = true;
 map.tile(5, 2).mine = true;
 
 map.tile(7, 3).button = true;
+map.tile(7, 3).target = {x: 2, y: 7};
+map.tile(2, 7).blockade = true;
 
 map.tile(2, 2).poo = true;
 console.log("tiles", map);
@@ -392,7 +399,11 @@ function handleKeyDown(e) {
 					burn(map.tile(player.x + cmd.x * 2, player.y + cmd.y * 2));
 				} else {
 					const nextTile = map.tile(player.x + cmd.x, player.y + cmd.y);
-					let canEnter = !nextTile.wall;
+					let canEnter = !nextTile.wall && !nextTile.blockade;
+					if (nextTile.button) {
+						const targetTile = map.tile(nextTile.target.x, nextTile.target.y);
+						targetTile.blockade = !targetTile.blockade; 
+					}
 					if (nextTile.crate) {
 						const crateNextX = player.x + cmd.x * 2;
 						const crateNextY = player.y + cmd.y * 2;
