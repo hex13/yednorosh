@@ -13,6 +13,8 @@ const images = Object.fromEntries(Object.entries({
 	poo: 'poo.png',
 	fire: 'fire.png',
 	fireSmall: 'fire-small.png',
+	mine: 'mine.png',
+	button: 'button.png',
 }).map(([name, src]) => {
 	const img = new Image();
 	img.src = src;
@@ -136,11 +138,19 @@ function renderTile(x, y, tile) {
 		ctx.fillStyle = color;
 		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2);
 	} else if (!rendered) {
-		const frame = 0;
+		let frame = 0;
 		ctx.drawImage(images.floor, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 		if (tile.poo) {
 			ctx.drawImage(images.poo, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 		}
+		if (tile.mine) {
+			ctx.drawImage(images.mine, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+		}
+		if (tile.button) {
+			frame = animLoopCounter % 6;
+			ctx.drawImage(images.button, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+		}
+
 	}
 	if (tile.fire == FULL_FIRE) {
 		const frame = animLoopCounter % 3;
@@ -245,6 +255,10 @@ for (let y = 3; y <= 10; y++) {
 map.tile(13, 13).crate = true;
 map.tile(15, 13).crate = true;
 map.tile(1, 2).crate = true;
+
+map.tile(5, 2).mine = true;
+
+map.tile(7, 3).button = true;
 
 map.tile(2, 2).poo = true;
 console.log("tiles", map);
