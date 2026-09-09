@@ -22,6 +22,7 @@ const images = Object.fromEntries(Object.entries({
 	return [name, img];
 }));
 
+const indirectMovables = ['mine', 'poo', 'button'];
 
 function mix(a, b, t) {
 	return a * (1 - t) + b * t;
@@ -155,7 +156,7 @@ function renderTile(x, y, tile) {
 			ctx.drawImage(images.mine, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 		}
 		if (tile.button) {
-			frame = map.tile(tile.target.x, tile.target.y).blockade? animLoopCounter % 6 : 6;
+			frame = map.tile(tile.button.target.x, tile.button.target.y).blockade? animLoopCounter % 6 : 6;
 			ctx.drawImage(images.button, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 		}
 		if (tile.blockade) {
@@ -279,8 +280,8 @@ map.tile(1, 2).crate = true;
 
 map.tile(5, 2).mine = true;
 
-map.tile(7, 3).button = true;
-map.tile(7, 3).target = {x: 2, y: 7};
+map.tile(7, 3).button = {target: {x: 2, y: 7}};
+
 map.tile(2, 7).blockade = true;
 
 map.tile(2, 2).poo = true;
@@ -421,7 +422,7 @@ function handleKeyDown(e) {
 					const nextTile = map.tile(player.x + cmd.x, player.y + cmd.y);
 					let canEnter = !nextTile.wall && !nextTile.blockade;
 					if (nextTile.button) {
-						const targetTile = map.tile(nextTile.target.x, nextTile.target.y);
+						const targetTile = map.tile(nextTile.button.target.x, nextTile.button.target.y);
 						targetTile.blockade = !targetTile.blockade; 
 					}
 					if (nextTile.crate) {
@@ -433,14 +434,14 @@ function handleKeyDown(e) {
 						} else {
 							nextTile.crate = false;
 							crateNextTile.crate = true;
-							if (crateNextTile.poo) {
-								crateNextTile.poo = false;
-								map.tile(crateNextTile.x + cmd.x, crateNextTile.y + cmd.y).poo = true;
-							}
-							if (crateNextTile.mine) {
-								crateNextTile.mine = false;
-								map.tile(crateNextTile.x + cmd.x, crateNextTile.y + cmd.y).mine = true;
-							}							
+
+							indirectMovables.forEach(kind => {
+								if (crateNextTile[kind]) {
+									const movable = crateNextTile[kind];
+									crateNextTile[kind] = null;
+									map.tile(crateNextTile.x + cmd.x, crateNextTile.y + cmd.y)[kind] = movable;
+								}
+							})
 						}
 					}
 					if (nextTile.fire == 0 && canEnter) {
