@@ -119,8 +119,11 @@ function renderTile(x, y, tile) {
 	let color = '#432';
 	let rendered = false;
 	if (tile.crate || tile.wall) {
-		const frame = 0;
+		let frame = 0;
 		const img = tile.crate? images.crate : tile.wall? images.wall : null;
+		if (tile.wall && tile.graffiti) {
+			frame = tile.graffiti;
+		}
 		ctx.drawImage(img, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 		rendered = true;
 	} else if (tile.fire == 1) {
@@ -250,9 +253,18 @@ function removeEntity(entity) {
 	}
 }
 
-for (let x = 3; x < 10; x++) {
-	map.tile(x, 10).wall = true;
+for (let y = 10; y < 15; y++) {
+	for (let x = 3; x < 10; x++) {
+		map.tile(x, y).wall = true;
+	}	
 }
+map.tile(10, 5).graffiti = 1;
+
+map.tile(10, 8).graffiti = 2;
+
+map.tile(5, 14).graffiti = 3;
+
+map.tile(7, 14).graffiti = 4;
 for (let y = 3; y <= 10; y++) {
 	map.tile(10, y).wall = true;
 }
