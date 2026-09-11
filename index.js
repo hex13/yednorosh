@@ -23,7 +23,7 @@ const images = Object.fromEntries(Object.entries({
 	return [name, img];
 }));
 
-const indirectMovables = ['mine', 'poo', 'button'];
+const indirectMovables = ['mine', 'poo'];
 const itemKinds = ['poo', 'mine', 'button', 'blockade', 'barrel'];
 
 function mix(a, b, t) {
@@ -41,7 +41,7 @@ class Entity {
 		this.transition = 1;
 		this.speed = 0.003;
 		this.dead = false;
-		if (group == 'player' || group == 'crate') {
+		if (group == 'player' || group == 'crate' || itemKinds.includes(group)) {
 			this.speed = 0.006;
 		}
 	}
@@ -82,7 +82,7 @@ class Entity {
 					this.move(nx, ny);
 					if (nextTile.mine) {
 						burn(nextTile);
-						nextTile.mine = false;
+						nextTile.mine = null;
 					}
 				}
 
@@ -123,10 +123,6 @@ let animLoopCounter = 0;
 function renderTile(x, y, tile) {
 	let color = '#432';
 	let rendered = false;
-	if (tile.crate) {
-		renderEntity(tile.crate);
-		rendered = true;
-	}
 	if (tile.wall) {
 		let frame = 0;
 		const img = tile.crate? images.crate : tile.wall? images.wall : null;
@@ -160,6 +156,7 @@ function renderTile(x, y, tile) {
 		}
 
 		itemKinds.forEach(kind => {
+			if (indirectMovables.includes(kind)) return;
 			if (tile[kind])	renderSprite(images[kind], x, y, frame);
 		});
 	}
@@ -227,8 +224,8 @@ function burn(tile) {
 	tile.fire = 1;
 	if (tile.poo || tile.crate) {
 		setTimeout(() => {
-			tile.poo = false;
-			tile.crate = false;
+			// tile.poo = false;
+			// tile.crate = false;
 		}, 1000);
 		tile.fire = FULL_FIRE;
 	}
@@ -280,13 +277,14 @@ putItem(1, 2, 'crate');
 putItem(6, 2, 'crate');
 
 
-map.tile(5, 2).mine = true;
+putItem(5, 2, 'mine');
 
 map.tile(7, 3).button = {target: {x: 2, y: 7}};
 
 map.tile(2, 7).blockade = true;
 
-map.tile(2, 2).poo = true;
+putItem(2, 2, 'poo');
+
 console.log("tiles", map);
 
 // map.tile(2, 2).fire = 3;
@@ -436,7 +434,7 @@ function handleKeyDown(e) {
 						const crateNextX = player.x + cmd.x * 2;
 						const crateNextY = player.y + cmd.y * 2;
 						const crateNextTile = map.tile(crateNextX, crateNextY);
-						if (crateNextTile.wall || crateNextTile.crate || findEntity(crateNextTile)) {
+						if (crateNextTile.wall || crateNextTile.crate || findEntity(crateNextTile)?.group == 'unicorn') {
 							canEnter = false;
 						} else {
 							const crate = nextTile.crate;
@@ -448,7 +446,12 @@ function handleKeyDown(e) {
 								if (crateNextTile[kind]) {
 									const movable = crateNextTile[kind];
 									crateNextTile[kind] = null;
-									map.tile(crateNextTile.x + cmd.x, crateNextTile.y + cmd.y)[kind] = movable;
+									const movableNextX = crateNextTile.x + cmd.x;
+									const movableNextY = crateNextTile.y + cmd.y;
+									map.tile(movableNextX, movableNextY)[kind] = movable;
+									if (movable instanceof Entity) {
+										movable.move(movableNextX, movableNextY);
+									}
 								}
 							})
 						}
