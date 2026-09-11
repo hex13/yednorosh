@@ -16,6 +16,7 @@ const images = Object.fromEntries(Object.entries({
 	mine: 'mine.png',
 	button: 'button.png',
 	blockade: 'blockade.png',
+	barrel: 'barrel.png',
 }).map(([name, src]) => {
 	const img = new Image();
 	img.src = src;
@@ -23,7 +24,7 @@ const images = Object.fromEntries(Object.entries({
 }));
 
 const indirectMovables = ['mine', 'poo', 'button'];
-const itemKinds = ['poo', 'mine', 'button', 'blockade'];
+const itemKinds = ['poo', 'mine', 'button', 'blockade', 'barrel'];
 
 function mix(a, b, t) {
 	return a * (1 - t) + b * t;
@@ -210,7 +211,7 @@ const map = Map((x, y) => ({
 	},
 }));
 
-// map.tile(2, 3).fire = 1;
+map.tile(15, 3).barrel = 1;
 // map.tile(3, 3).fire = FULL_FIRE;
 // map.tile(4, 3).fire = FULL_FIRE;
 // map.tile(5, 3).fire = FULL_FIRE;
