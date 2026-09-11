@@ -31,16 +31,19 @@ function mix(a, b, t) {
 }
 
 class Entity {
-	constructor(group = '') {
+	constructor(group = '', x = 0, y = 0) {
 		this.group = group;
-		this.x = 0;
-		this.y = 0;
+		this.x = x;
+		this.y = y;
 		this.prevX = this.x;
 		this.prevY = this.y;
 		this.dir = {x: 1, y: 0};
 		this.transition = 1;
 		this.speed = 0.003;
 		this.dead = false;
+		if (group == 'player' || group == 'crate') {
+			this.speed = 0.006;
+		}
 	}
 	move(nx, ny) {
 		this.prevX = this.x;
@@ -94,7 +97,6 @@ class Entity {
 const player = new Entity('player');
 player.x = 0;
 player.y = 0;
-player.speed = 0.005;
 const entities = [player];
 const bullets = [];
 
@@ -121,7 +123,11 @@ let animLoopCounter = 0;
 function renderTile(x, y, tile) {
 	let color = '#432';
 	let rendered = false;
-	if (tile.crate || tile.wall) {
+	if (tile.crate) {
+		renderEntity(tile.crate);
+		rendered = true;
+	}
+	if (tile.wall) {
 		let frame = 0;
 		const img = tile.crate? images.crate : tile.wall? images.wall : null;
 		if (tile.wall && tile.graffiti) {
@@ -263,9 +269,16 @@ for (let y = 3; y <= 10; y++) {
 	map.tile(10, y).wall = true;
 }
 
-map.tile(13, 13).crate = true;
-map.tile(15, 13).crate = true;
-map.tile(1, 2).crate = true;
+
+function putItem(x, y, kind) {
+	const entity = new Entity(kind, x, y);
+	map.tile(x, y)[kind] = entity;
+	entities.push(entity);
+}
+
+putItem(1, 2, 'crate');
+putItem(6, 2, 'crate');
+
 
 map.tile(5, 2).mine = true;
 
@@ -426,8 +439,10 @@ function handleKeyDown(e) {
 						if (crateNextTile.wall || crateNextTile.crate || findEntity(crateNextTile)) {
 							canEnter = false;
 						} else {
-							nextTile.crate = false;
-							crateNextTile.crate = true;
+							const crate = nextTile.crate;
+							nextTile.crate = null;
+							crateNextTile.crate = crate;
+							crate.move(crateNextTile.x, crateNextTile.y);
 
 							indirectMovables.forEach(kind => {
 								if (crateNextTile[kind]) {
