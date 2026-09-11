@@ -94,7 +94,7 @@ class Entity {
 const player = new Entity('player');
 player.x = 0;
 player.y = 0;
-player.speed = 0.02;
+player.speed = 0.005;
 const entities = [player];
 const bullets = [];
 
@@ -412,7 +412,7 @@ function handleKeyDown(e) {
 				if (keyboardState.Space) {
 					burn(map.tile(player.x + cmd.x, player.y + cmd.y));
 					burn(map.tile(player.x + cmd.x * 2, player.y + cmd.y * 2));
-				} else {
+				} else if (player.transition == 1.0) {
 					const nextTile = map.tile(player.x + cmd.x, player.y + cmd.y);
 					let canEnter = !nextTile.wall && !nextTile.blockade;
 					if (nextTile.button) {
