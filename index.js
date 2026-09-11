@@ -23,6 +23,7 @@ const images = Object.fromEntries(Object.entries({
 	return [name, img];
 }));
 
+const directMovables = ['crate', 'barrel'];
 const indirectMovables = ['mine', 'poo'];
 const itemKinds = ['poo', 'mine', 'button', 'blockade', 'barrel'];
 
@@ -156,7 +157,7 @@ function renderTile(x, y, tile) {
 		}
 
 		itemKinds.forEach(kind => {
-			if (indirectMovables.includes(kind)) return;
+			if (directMovables.includes(kind) || indirectMovables.includes(kind)) return;
 			if (tile[kind])	renderSprite(images[kind], x, y, frame);
 		});
 	}
@@ -214,7 +215,7 @@ const map = Map((x, y) => ({
 	},
 }));
 
-map.tile(15, 3).barrel = 1;
+putItem(15, 3, 'barrel');
 // map.tile(3, 3).fire = FULL_FIRE;
 // map.tile(4, 3).fire = FULL_FIRE;
 // map.tile(5, 3).fire = FULL_FIRE;
@@ -430,32 +431,36 @@ function handleKeyDown(e) {
 						const targetTile = map.tile(nextTile.button.target.x, nextTile.button.target.y);
 						targetTile.blockade = !targetTile.blockade;
 					}
-					if (nextTile.crate) {
-						const crateNextX = player.x + cmd.x * 2;
-						const crateNextY = player.y + cmd.y * 2;
-						const crateNextTile = map.tile(crateNextX, crateNextY);
-						if (crateNextTile.wall || crateNextTile.crate || findEntity(crateNextTile)?.group == 'unicorn') {
-							canEnter = false;
-						} else {
-							const crate = nextTile.crate;
-							nextTile.crate = null;
-							crateNextTile.crate = crate;
-							crate.move(crateNextTile.x, crateNextTile.y);
+					directMovables.forEach(movableType => {
+						const movable = nextTile[movableType];
+						if (movable) {
+							const movableNextTile = map.tile(player.x + cmd.x * 2, player.y + cmd.y * 2);
+							if (directMovables.find(kind => movableNextTile[kind])) {
+								canEnter = false;
+							} else if (movableNextTile.wall || findEntity(movableNextTile)?.group == 'unicorn') {
+								canEnter = false;
+							} 
+							if (canEnter) {
+								nextTile[movableType] = null;
+								movableNextTile[movableType] = movable;
+								movable.move(movableNextTile.x, movableNextTile.y);
 
-							indirectMovables.forEach(kind => {
-								if (crateNextTile[kind]) {
-									const movable = crateNextTile[kind];
-									crateNextTile[kind] = null;
-									const movableNextX = crateNextTile.x + cmd.x;
-									const movableNextY = crateNextTile.y + cmd.y;
-									map.tile(movableNextX, movableNextY)[kind] = movable;
-									if (movable instanceof Entity) {
-										movable.move(movableNextX, movableNextY);
+								indirectMovables.forEach(kind => {
+									if (movableNextTile[kind]) {
+										const movable = movableNextTile[kind];
+										movableNextTile[kind] = null;
+										const movableNextX = movableNextTile.x + cmd.x;
+										const movableNextY = movableNextTile.y + cmd.y;
+										map.tile(movableNextX, movableNextY)[kind] = movable;
+										if (movable instanceof Entity) {
+											movable.move(movableNextX, movableNextY);
+										}
 									}
-								}
-							})
+								})
+							}
 						}
-					}
+
+					});
 					if (nextTile.fire == 0 && canEnter) {
 						player.move(player.x + cmd.x, player.y + cmd.y);
 					}
