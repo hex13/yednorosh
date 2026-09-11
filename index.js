@@ -1,6 +1,9 @@
 "use strict";
 console.log("yednorosh");
 
+const TILE_SIZE = 80;
+const HALF_TILE_SIZE = TILE_SIZE / 2;
+const FULL_FIRE = 2;
 
 class Tile {}
 
@@ -26,6 +29,11 @@ const images = Object.fromEntries(Object.entries({
 const directMovables = ['crate', 'barrel'];
 const indirectMovables = ['mine', 'poo'];
 const itemKinds = ['poo', 'mine', 'button', 'blockade', 'barrel'];
+
+const particles = [
+	{x: 1, y: 1, vx: 0.003, vy: 0, size: TILE_SIZE, color: '#f00'},
+	{x: 3, y: 3, vx: 0.0005, vy: 0.005, size: 10, color: '#0a0'},
+];
 
 function mix(a, b, t) {
 	return a * (1 - t) + b * t;
@@ -110,9 +118,6 @@ for (let i = 0; i < 3; i++) {
 }
 
 class Weapon {}
-const TILE_SIZE = 80;
-const HALF_TILE_SIZE = TILE_SIZE / 2;
-const FULL_FIRE = 2;
 
 const canvas = document.querySelector("canvas");
 canvas.width = window.innerWidth;
@@ -354,6 +359,18 @@ function render(time) {
 		bullet.y += bullet.vy * 0.1;
 		renderBullet(bullet);
 	});
+
+	for (let i = particles.length - 1; i >= 0; i--) {
+		const particle = particles[i];
+		ctx.fillStyle = particle.color;
+		ctx.fillRect(particle.x * TILE_SIZE - particle.size / 2, particle.y * TILE_SIZE - particle.size / 2, particle.size, particle.size);
+		particle.x += particle.vx * delta;
+		particle.y += particle.vy * delta;
+		particle.ttl -= delta;
+		if (particle.ttl <= 0) {
+			particles.splice(i, 1);
+		}
+	};
 	requestAnimationFrame(render);
 	// animLoopCounter += 1;
 }
@@ -424,6 +441,22 @@ function handleKeyDown(e) {
 				if (keyboardState.Space) {
 					burn(map.tile(player.x + cmd.x, player.y + cmd.y));
 					burn(map.tile(player.x + cmd.x * 2, player.y + cmd.y * 2));
+					const speed = 0.006 + Math.random() * 0.004 - 0.002;
+					const startX = player.x + 0.75;
+					const startY = player.y + 0.75;
+					const shootAngle = (Math.atan2(cmd.y, cmd.x) + Math.PI * 2);//% (Math.PI * 2);
+					for (let i = 0; i < 10; i++) {
+						const angle = shootAngle - 0.2 + i * 0.04;
+						const size = Math.abs(4.5 - i) * 2 + 2;//4 + Math.random() * 9;
+						particles.push({
+							x: startX, y: startY,
+							vx: Math.cos(angle) * speed * (Math.random() * 0.3 + 0.85),
+							vy: Math.sin(angle) * speed * (Math.random() * 0.3 + 0.85),
+							size,
+							ttl: 500,
+							color: size < 7 ? '#f4a741' : size < 10? '##d6824b' : '#d64b4b',
+						});
+					}
 				} else if (player.transition == 1.0) {
 					const nextTile = map.tile(player.x + cmd.x, player.y + cmd.y);
 					let canEnter = !nextTile.wall && !nextTile.blockade;
@@ -439,7 +472,7 @@ function handleKeyDown(e) {
 								canEnter = false;
 							} else if (movableNextTile.wall || findEntity(movableNextTile)?.group == 'unicorn') {
 								canEnter = false;
-							} 
+							}
 							if (canEnter) {
 								nextTile[movableType] = null;
 								movableNextTile[movableType] = movable;
