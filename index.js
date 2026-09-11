@@ -329,6 +329,12 @@ function render(time) {
 		if (entity.transition >= 1.0) {
 			entity.transition = 1.0;
 		}
+		if (entity.transition == 1.0) {
+			entity.update(map);
+		}
+
+
+
 	});
 	bullets.forEach(bullet => {
 		console.log(bullet);
@@ -455,9 +461,6 @@ document.addEventListener('keyup', handleKeyUp);
 const input = ['ArrowDown', 'ArrowDown', 'ArrowRight', 'ArrowRight', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'Space'];
 setInterval(() => {
 	// handleKeyDown({code: input.shift()});
-	entities.forEach(entity => {
-		entity.update(map);
-	})
 }, 700);
 
 setInterval(() => {
