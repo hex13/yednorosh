@@ -23,6 +23,7 @@ const images = Object.fromEntries(Object.entries({
 }));
 
 const indirectMovables = ['mine', 'poo', 'button'];
+const itemKinds = ['poo', 'mine', 'button', 'blockade'];
 
 function mix(a, b, t) {
 	return a * (1 - t) + b * t;
@@ -97,10 +98,6 @@ const entities = [player];
 const bullets = [];
 
 
-const npc = new Entity()
-npc.x = 10;
-entities.push(npc);
-
 for (let i = 0; i < 3; i++) {
 	const npc = new Entity('unicorn')
 	npc.x = 3 + i;
@@ -129,7 +126,7 @@ function renderTile(x, y, tile) {
 		if (tile.wall && tile.graffiti) {
 			frame = tile.graffiti;
 		}
-		ctx.drawImage(img, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+		renderSprite(img, x, y, frame);
 		rendered = true;
 	} else if (tile.fire == 1) {
 		color = '#632';
@@ -148,29 +145,20 @@ function renderTile(x, y, tile) {
 		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2);
 	} else if (!rendered) {
 		let frame = 0;
-		ctx.drawImage(images.floor, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-		if (tile.poo) {
-			ctx.drawImage(images.poo, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-		}
-		if (tile.mine) {
-			ctx.drawImage(images.mine, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-		}
+
+		renderSprite(images.floor, x, y, frame);
+
 		if (tile.button) {
 			frame = map.tile(tile.button.target.x, tile.button.target.y).blockade? animLoopCounter % 6 : 6;
-			ctx.drawImage(images.button, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-		}
-		if (tile.blockade) {
-			frame = animLoopCounter % 3;
-			ctx.drawImage(images.blockade, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 		}
 
+		itemKinds.forEach(kind => {
+			if (tile[kind])	renderSprite(images[kind], x, y, frame);
+		});
 	}
-	if (tile.fire == FULL_FIRE) {
+	if (tile.fire > 0) {
 		const frame = animLoopCounter % 3;
-		ctx.drawImage(images.fire, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-	} else if (tile.fire) {
-		const frame = animLoopCounter % 3;
-		ctx.drawImage(images.fireSmall, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+		renderSprite(tile.fire == FULL_FIRE? images.fire : images.fireSmall, x, y, frame);
 	}
 
 }
@@ -261,7 +249,7 @@ function removeEntity(entity) {
 for (let y = 10; y < 15; y++) {
 	for (let x = 3; x < 10; x++) {
 		map.tile(x, y).wall = true;
-	}	
+	}
 }
 map.tile(10, 5).graffiti = 1;
 
@@ -300,22 +288,21 @@ function renderEntity(entity) {
 	const size = 16;
 	const x = entity.screenX();
 	const y = entity.screenY();
-
+	let frame = 0;
 	if (entity.group == 'player') {
-		const frame = animLoopCounter % 3;
-		ctx.drawImage(images.player, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+		frame = animLoopCounter % 3;
 	} else if (entity.group == 'unicorn') {
-		let frame = entity.dead? 2 : animLoopCounter % 2;
+		frame = entity.dead? 2 : animLoopCounter % 2;
 		if (entity.dir.x < 0) {
 			frame += 3;
 		}
-		ctx.drawImage(images.unicorn, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-
-	} else {
-		ctx.fillRect(x * TILE_SIZE + HALF_TILE_SIZE - size / 2, y * TILE_SIZE + HALF_TILE_SIZE - size / 2, size, size);
 	}
+	renderSprite(images[entity.group], x, y, frame);
 }
 
+function renderSprite(img, x, y, frame = 0) {
+	ctx.drawImage(img, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+}
 function renderBullet(obj) {
 	const color = 'yellow';
 	ctx.fillStyle = color;
@@ -401,7 +388,7 @@ const keyboardState = {}
 function handleKeyDown(e) {
 	if (Object.hasOwn(keymap, e.code)) {
 		keyboardState[e.code] = true;
-		console.log("EE")
+
 		const cmd = keymap[e.code];
 		switch (cmd) {
 			case 'shoot':
@@ -423,7 +410,7 @@ function handleKeyDown(e) {
 					let canEnter = !nextTile.wall && !nextTile.blockade;
 					if (nextTile.button) {
 						const targetTile = map.tile(nextTile.button.target.x, nextTile.button.target.y);
-						targetTile.blockade = !targetTile.blockade; 
+						targetTile.blockade = !targetTile.blockade;
 					}
 					if (nextTile.crate) {
 						const crateNextX = player.x + cmd.x * 2;
