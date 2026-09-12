@@ -6,7 +6,8 @@ const FULL_FIRE = 2;
 const MAP_WIDTH = 12;
 const MAP_HEIGHT = 12;
 
-const images = Object.fromEntries([
+const images = {};
+for (const name of [
 	'player',
 	'unicorn',
 	'crate',
@@ -19,19 +20,17 @@ const images = Object.fromEntries([
 	'button',
 	'blockade',
 	'barrel',
-].map(name => {
+]) {
 	const img = new Image();
 	img.src = name + '.png';
-	return [name, img];
-}));
+	images[name] = img;
+}
 
 const directMovables = ['crate', 'barrel'];
 const indirectMovables = ['mine', 'poo'];
 const movables = directMovables.concat(indirectMovables);
 
 const itemKinds = ['poo', 'mine', 'button', 'blockade', 'barrel'];
-
-const particles = [];
 
 function mix(a, b, t) {
 	return a * (1 - t) + b * t;
@@ -87,6 +86,46 @@ class Entity {
 	}
 }
 
+function Map(create) {
+	const tiles = Object.create(null);
+	const getKey = (x, y) => x + ',' + y;
+	const map = {
+		width: MAP_WIDTH,
+		height: MAP_HEIGHT,
+		inBounds(x, y) {
+			return x >= 0 && y >= 0 && x < this.width && y < this.height;
+		},
+		[Symbol.iterator]: function* () {
+			for (let y = 0; y < map.height; y++) {
+				for (let x = 0; x < map.width; x++) {
+					yield {x, y};
+				}
+			}
+		},
+		neighbors8: function* (x, y) {
+			for (let dy = -1; dy <= 1; dy++) {
+				for (let dx = -1; dx <= 1; dx++) {
+					if (dx == 0 && dy == 0) continue;
+					yield {x: x + dx, y: y + dy};
+				}
+			}
+		},
+		tile: (x, y) => tiles[getKey(x, y)] || (tiles[getKey(x, y)] = create(x, y)),
+	};
+	return map;
+}
+
+const canvas = document.querySelector("canvas");
+canvas.width = TILE_SIZE * MAP_WIDTH;
+canvas.height = TILE_SIZE * MAP_HEIGHT;
+const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+//-------------------------------------------------------------------------------------------
+
+const particles = [];
+
+
 const player = new Entity('player');
 const entities = [player];
 const bullets = [];
@@ -98,13 +137,6 @@ for (let i = 0; i < 3; i++) {
 	npc.y = 5 + i;
 	entities.push(npc);
 }
-
-
-const canvas = document.querySelector("canvas");
-canvas.width = TILE_SIZE * MAP_WIDTH;
-canvas.height = TILE_SIZE * MAP_HEIGHT;
-const ctx = canvas.getContext('2d');
-ctx.imageSmoothingEnabled = false;
 
 let animLoopCounter = 0;
 function renderTile(x, y, tile) {
@@ -137,34 +169,6 @@ function renderTile(x, y, tile) {
 
 }
 
-function Map(create) {
-	const tiles = Object.create(null);
-	const getKey = (x, y) => x + ',' + y;
-	const map = {
-		width: MAP_WIDTH,
-		height: MAP_HEIGHT,
-		inBounds(x, y) {
-			return x >= 0 && y >= 0 && x < this.width && y < this.height;
-		},
-		[Symbol.iterator]: function* () {
-			for (let y = 0; y < map.height; y++) {
-				for (let x = 0; x < map.width; x++) {
-					yield {x, y};
-				}
-			}
-		},
-		neighbors8: function* (x, y) {
-			for (let dy = -1; dy <= 1; dy++) {
-				for (let dx = -1; dx <= 1; dx++) {
-					if (dx == 0 && dy == 0) continue;
-					yield {x: x + dx, y: y + dy};
-				}
-			}
-		},
-		tile: (x, y) => tiles[getKey(x, y)] || (tiles[getKey(x, y)] = create(x, y)),
-	};
-	return map;
-}
 const map = Map((x, y) => ({
 	x, y,
 	fire: 0,
