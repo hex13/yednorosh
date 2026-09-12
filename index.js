@@ -170,15 +170,11 @@ const map = Map((x, y) => ({
 	x, y,
 	fire: 0,
 	wall: null,
-	_flammable: false,
 	get flammable() {
 		if (this.poo) return true;
 		const entitiesOnTile = findEntity(this);
 		if (entitiesOnTile) return true;
-		return this._flammable;
-	},
-	set flammable(v) {
-		this._flammable = v;
+		return false;
 	},
 	updates: {
 		fire: 0,
