@@ -128,8 +128,6 @@ const particles = [];
 
 const player = new Entity('player');
 const entities = [player];
-const bullets = [];
-
 
 for (let i = 0; i < 3; i++) {
 	const npc = new Entity('unicorn')
@@ -300,14 +298,6 @@ function renderEntity(entity) {
 function renderSprite(img, x, y, frame = 0) {
 	ctx.drawImage(img, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
 }
-function renderBullet(obj) {
-	const color = 'yellow';
-	ctx.fillStyle = color;
-	const size = 4;
-	const {x, y} = obj;
-	ctx.fillRect(~~(x * TILE_SIZE + HALF_TILE_SIZE - size / 2), ~~(y * TILE_SIZE + HALF_TILE_SIZE - size / 2), size, size);
-
-}
 
 let lastTime;
 function render(time) {
@@ -337,12 +327,6 @@ function render(time) {
 		}
 
 	}
-	bullets.forEach(bullet => {
-		console.log(bullet);
-		bullet.x += bullet.vx * 0.1;
-		bullet.y += bullet.vy * 0.1;
-		renderBullet(bullet);
-	});
 
 	for (let i = particles.length - 1; i >= 0; i--) {
 		const particle = particles[i];
@@ -393,7 +377,6 @@ const keymap = {
 	'ArrowDown': {x: 0, y: 1},
 	'ArrowUp': {x: 0, y: -1},
 	'Space': 'fire',
-	'ControlLeft': 'shoot',
 	'KeyM': 'mine',
 }
 
@@ -405,10 +388,6 @@ function handleKeyDown(e) {
 
 		const cmd = keymap[e.code];
 		switch (cmd) {
-			case 'shoot':
-				const bullet = {x: player.x, y: player.y, vx: 1, vy: 0};
-				bullets.push(bullet);
-				break;
 			case 'fire':
 				break;
 			case 'mine':
