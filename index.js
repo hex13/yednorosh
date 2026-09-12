@@ -1,10 +1,11 @@
 "use strict";
 
 const TILE_SIZE = 80;
-const HALF_TILE_SIZE = TILE_SIZE / 2;
 const FULL_FIRE = 2;
 const MAP_WIDTH = 12;
 const MAP_HEIGHT = 12;
+
+const { cos, sin, random, abs, PI} = Math;
 
 const images = {};
 for (const name of [
@@ -32,9 +33,7 @@ const movables = directMovables.concat(indirectMovables);
 
 const itemKinds = ['poo', 'mine', 'button', 'blockade', 'barrel'];
 
-function mix(a, b, t) {
-	return a * (1 - t) + b * t;
-}
+const mix = (a, b, t) => a * (1 - t) + b * t;
 
 class Entity {
 	constructor(group = '', x = 0, y = 0) {
@@ -193,10 +192,10 @@ const rainbowColors = ['#ffffff', '#ff4422', '#ffee77', '#44dd33', '#4466ee', '#
 function explodeAnimation(x, y) {
 	const count = 6;
 	for (let i = 0; i < count; i++) {
-		const angle = Math.PI * 2 * i / count;
+		const angle = PI * 2 * i / count;
 		particles.push({
 			x: x + 0.5, y: y + 0.3,
-			vx: Math.cos(angle) * 0.0006, vy: Math.sin(angle) * 0.0005 - 0.00010,
+			vx: cos(angle) * 0.0006, vy: sin(angle) * 0.0005 - 0.00010,
 			ttl: 600,
 			color: '#fff',
 			size: i % 2 == 0? 4 : 2,
@@ -236,9 +235,7 @@ function burn(tile) {
 		tile.fire = FULL_FIRE;
 	}
 }
-function findEntity(tile) {
- 	return entities.find(e => e.x == tile.x && e.y == tile.y);
-}
+const findEntity = (tile) => entities.find(e => e.x == tile.x && e.y == tile.y);
 
 function removeEntity(entity) {
 	const idx = entities.indexOf(entity);
@@ -325,7 +322,6 @@ function render(time) {
 			const frame = animLoopCounter % 3;
 			renderSprite(tile.fire == FULL_FIRE? images.fire : images.fire_small, x, y, frame);
 		}
-
 	}
 
 	for (let i = particles.length - 1; i >= 0; i--) {
@@ -342,7 +338,6 @@ function render(time) {
 
 	};
 	requestAnimationFrame(render);
-	// animLoopCounter += 1;
 }
 
 requestAnimationFrame(render);
@@ -388,8 +383,6 @@ function handleKeyDown(e) {
 
 		const cmd = keymap[e.code];
 		switch (cmd) {
-			case 'fire':
-				break;
 			case 'mine':
 				map.tile(player.x, player.y).mine = true;
 				break;
@@ -397,20 +390,20 @@ function handleKeyDown(e) {
 				if (keyboardState.Space) {
 					burn(map.tile(player.x + cmd.x, player.y + cmd.y));
 					burn(map.tile(player.x + cmd.x * 2, player.y + cmd.y * 2));
-					const speed = 0.006 + Math.random() * 0.004 - 0.002;
+					const speed = 0.006 + random() * 0.004 - 0.002;
 					const startX = player.x + 0.75;
 					const startY = player.y + 0.75;
-					const shootAngle = (Math.atan2(cmd.y, cmd.x) + Math.PI * 2);//% (Math.PI * 2);
+					const shootAngle = (Math.atan2(cmd.y, cmd.x) + PI * 2);
 					for (let i = 0; i < 10; i++) {
 						const angle = shootAngle - 0.2 + i * 0.04;
-						const size = Math.abs(4.5 - i) * 2 + 2;
+						const size = abs(4.5 - i) * 2 + 2;
 						particles.push({
 							x: startX, y: startY,
-							vx: Math.cos(angle) * speed * (Math.random() * 0.3 + 0.85),
-							vy: Math.sin(angle) * speed * (Math.random() * 0.3 + 0.85) - 0.0005,
+							vx: cos(angle) * speed * (random() * 0.3 + 0.85),
+							vy: sin(angle) * speed * (random() * 0.3 + 0.85) - 0.0005,
 							size,
 							ttl: 450,
-							color: size < 7 ? '#f4a741' : size < 10? '##d6824b' : '#d64b4b',
+							color: size < 7 ? '#f4a741' : size < 10? '#d6824b' : '#d64b4b',
 						});
 					}
 				} else if (player.transition == 1.0) {
@@ -487,7 +480,7 @@ function initJoystick(el, action) {
 			const deltaX = e.clientX - joystickStart.x;
 			const deltaY = e.clientY - joystickStart.y;
 			let code = '';
-			if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+			if (abs(deltaX) >= abs(deltaY)) {
 				if (deltaX < 0) {
 					code = 'ArrowLeft';
 				} else if (deltaX > 0) {
