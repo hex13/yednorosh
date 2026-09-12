@@ -5,6 +5,9 @@ const TILE_SIZE = 80;
 const HALF_TILE_SIZE = TILE_SIZE / 2;
 const FULL_FIRE = 2;
 
+const MAP_WIDTH = 12;
+const MAP_HEIGHT = 12;
+
 class Tile {}
 
 const images = Object.fromEntries(Object.entries({
@@ -120,8 +123,8 @@ for (let i = 0; i < 3; i++) {
 class Weapon {}
 
 const canvas = document.querySelector("canvas");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width = TILE_SIZE * MAP_WIDTH;
+canvas.height = TILE_SIZE * MAP_HEIGHT;
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
@@ -177,8 +180,8 @@ function Map(create) {
 	const tiles = Object.create(null);
 	const getKey = (x, y) => x + ',' + y;
 	const map = {
-		width: 20,
-		height: 15,
+		width: MAP_WIDTH,
+		height: MAP_HEIGHT,
 		inBounds(x, y) {
 			return x >= 0 && y >= 0 && x < this.width && y < this.height;
 		},
@@ -522,3 +525,54 @@ setInterval(() => {
 setInterval(() => {
 	animLoopCounter += 1;
 }, 200);
+
+
+function initJoystick(el, action) {
+	const joystick = el;
+	let joystickStart = null;
+	joystick.addEventListener('pointerdown', (e) => {
+		joystickStart = {x: e.clientX, y: e.clientY};
+
+	});
+	joystick.addEventListener('pointermove', (e) => {
+		e.preventDefault();
+		if (joystickStart) {
+			const deltaX = e.clientX - joystickStart.x;
+			const deltaY = e.clientY - joystickStart.y;
+			let code = '';
+			if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+				if (deltaX < 0) {
+					code = 'ArrowLeft';
+				} else if (deltaX > 0) {
+					code = 'ArrowRight';
+				}
+			} else {
+				if (deltaY < 0) {
+					code = 'ArrowUp';
+				} else if (deltaY > 0) {
+					code = 'ArrowDown';
+				}
+			}
+
+			if (action == 'fire') {
+				keyboardState.Space = true;
+			}
+
+			handleKeyDown({code})
+
+			if (action == 'fire') {
+				keyboardState.Space = false;
+				joystickStart = false;
+			}
+
+
+		}
+	});
+	joystick.addEventListener('pointerup', (e) => {
+		joystickStart = null;
+	});
+}
+
+initJoystick(document.getElementById('joystick-movement'), 'movement');
+initJoystick(document.getElementById('joystick-fire'), 'fire');
+
