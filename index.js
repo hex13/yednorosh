@@ -31,6 +31,8 @@ const images = Object.fromEntries(Object.entries({
 
 const directMovables = ['crate', 'barrel'];
 const indirectMovables = ['mine', 'poo'];
+const movables = directMovables.concat(indirectMovables);
+
 const itemKinds = ['poo', 'mine', 'button', 'blockade', 'barrel'];
 
 const particles = [];
@@ -123,7 +125,7 @@ function renderTile(x, y, tile) {
 	let rendered = false;
 	if (tile.wall) {
 		let frame = 0;
-		const img = tile.crate? images.crate : tile.wall? images.wall : null;
+		const img = images.wall;
 		if (tile.wall && tile.graffiti) {
 			frame = tile.graffiti;
 		}
@@ -144,10 +146,6 @@ function renderTile(x, y, tile) {
 			if (directMovables.includes(kind) || indirectMovables.includes(kind)) return;
 			if (tile[kind])	renderSprite(images[kind], x, y, frame);
 		});
-	}
-	if (tile.fire > 0) {
-		const frame = animLoopCounter % 3;
-		renderSprite(tile.fire == FULL_FIRE? images.fire : images.fireSmall, x, y, frame);
 	}
 
 }
@@ -201,12 +199,30 @@ const map = Map((x, y) => ({
 
 putItem(15, 3, 'barrel');
 
+function explodeAnimation(x, y) {
+	const count = 8;
+	for (let i = 0; i < count; i++) {
+		const angle = Math.PI * 2 * i / count;
+		particles.push({
+			x: x + 0.5, y: y + 0.3,
+			vx: Math.cos(angle) * 0.0006, vy: Math.sin(angle) * 0.0005 - 0.00010,
+			ttl: 600, color: '#fff',
+			size: i % 2 == 0? 4 : 2,
+		});
+	}
+}
+
 function burn(tile) {
 	tile.fire = 1;
 	if (tile.poo || tile.crate) {
 		setTimeout(() => {
-			// tile.poo = false;
-			// tile.crate = false;
+			movables.forEach(kind => {
+				explodeAnimation(tile.x, tile.y);
+				if (tile[kind] instanceof Entity) {
+					removeEntity(tile[kind]);
+					tile[kind] = null;
+				}
+			});
 		}, 1000);
 		tile.fire = FULL_FIRE;
 	}
@@ -215,6 +231,7 @@ function burn(tile) {
 	if (entity && entity.group == 'unicorn') {
 		entity.dead = true;
 		setTimeout(() => {
+			explodeAnimation(entity.x, entity.y);
 			removeEntity(entity);
 		}, 1000);
 		tile.fire = FULL_FIRE;
@@ -296,10 +313,8 @@ function render(time) {
 	const delta = lastTime? time - lastTime : 16;
 	lastTime = time;
 
-	for (let y = 0; y < map.height; y++) {
-		for (let x = 0; x < map.width; x++) {
-			renderTile(x, y, map.tile(x, y));
-		}
+	for (const {x, y} of map) {
+		renderTile(x, y, map.tile(x, y));
 	}
 	entities.forEach(entity => {
 		renderEntity(entity);
@@ -312,6 +327,15 @@ function render(time) {
 		}
 
 	});
+
+	for (const {x, y} of map) {
+		const tile = map.tile(x, y);
+		if (tile.fire > 0) {
+			const frame = animLoopCounter % 3;
+			renderSprite(tile.fire == FULL_FIRE? images.fire : images.fireSmall, x, y, frame);
+		}
+
+	}
 	bullets.forEach(bullet => {
 		console.log(bullet);
 		bullet.x += bullet.vx * 0.1;
@@ -325,10 +349,12 @@ function render(time) {
 		ctx.fillRect(particle.x * TILE_SIZE - particle.size / 2, particle.y * TILE_SIZE - particle.size / 2, particle.size, particle.size);
 		particle.x += particle.vx * delta;
 		particle.y += particle.vy * delta;
+		particle.vy += 0.00004;
 		particle.ttl -= delta;
 		if (particle.ttl <= 0) {
 			particles.splice(i, 1);
 		}
+
 	};
 	requestAnimationFrame(render);
 	// animLoopCounter += 1;
@@ -410,7 +436,7 @@ function handleKeyDown(e) {
 						particles.push({
 							x: startX, y: startY,
 							vx: Math.cos(angle) * speed * (Math.random() * 0.3 + 0.85),
-							vy: Math.sin(angle) * speed * (Math.random() * 0.3 + 0.85),
+							vy: Math.sin(angle) * speed * (Math.random() * 0.3 + 0.85) - 0.0005,
 							size,
 							ttl: 450,
 							color: size < 7 ? '#f4a741' : size < 10? '##d6824b' : '#d64b4b',
