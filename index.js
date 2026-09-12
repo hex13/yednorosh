@@ -33,10 +33,7 @@ const directMovables = ['crate', 'barrel'];
 const indirectMovables = ['mine', 'poo'];
 const itemKinds = ['poo', 'mine', 'button', 'blockade', 'barrel'];
 
-const particles = [
-	{x: 1, y: 1, vx: 0.003, vy: 0, size: TILE_SIZE, color: '#f00'},
-	{x: 3, y: 3, vx: 0.0005, vy: 0.005, size: 10, color: '#0a0'},
-];
+const particles = [];
 
 function mix(a, b, t) {
 	return a * (1 - t) + b * t;
@@ -63,13 +60,6 @@ class Entity {
 		this.x = nx;
 		this.y = ny;
 		this.transition = 0.0;
-		// let interval = setInterval(() => {
-		// 	this.transition += 0.1;
-		// 	if (this.transition >= 1) {
-		// 		this.transition = 1;
-		// 		clearInterval(interval);
-		// 	}
-		// });
 	}
 	screenX() {
 		return mix(this.prevX, this.x, this.transition);
@@ -81,7 +71,6 @@ class Entity {
 		if (this.transition < 1.0 || this.dead) {
 			return;
 		}
-		// map.tile(this.x, this.y)
 		switch (this.group) {
 			case 'unicorn': {
 				const nx = this.x + this.dir.x;
@@ -140,22 +129,9 @@ function renderTile(x, y, tile) {
 		}
 		renderSprite(img, x, y, frame);
 		rendered = true;
-	} else if (tile.fire == 1) {
-		color = '#632';
-	} else if (tile.fire == 2) {
-		color = '#843';
-	} else if (tile.fire == 3) {
-		color = '#d86';
-	} else if (tile.fire == 4) {
-		color = '#fa7';
 	}
 
-	if (0 && tile.fire) {
-		ctx.fillStyle = '#2b2b2b';
-		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-		ctx.fillStyle = color;
-		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE - 2, TILE_SIZE - 2);
-	} else if (!rendered) {
+	if (!rendered) {
 		let frame = 0;
 
 		renderSprite(images.floor, x, y, frame);
@@ -224,10 +200,6 @@ const map = Map((x, y) => ({
 }));
 
 putItem(15, 3, 'barrel');
-// map.tile(3, 3).fire = FULL_FIRE;
-// map.tile(4, 3).fire = FULL_FIRE;
-// map.tile(5, 3).fire = FULL_FIRE;
-// map.tile(5, 5).fire = FULL_FIRE;
 
 function burn(tile) {
 	tile.fire = 1;
@@ -265,11 +237,8 @@ for (let y = 10; y < 15; y++) {
 	}
 }
 map.tile(10, 5).graffiti = 1;
-
 map.tile(10, 8).graffiti = 2;
-
 map.tile(5, 14).graffiti = 3;
-
 map.tile(7, 14).graffiti = 4;
 for (let y = 3; y <= 10; y++) {
 	map.tile(10, y).wall = true;
@@ -284,8 +253,6 @@ function putItem(x, y, kind) {
 
 putItem(1, 2, 'crate');
 putItem(6, 2, 'crate');
-
-
 putItem(5, 2, 'mine');
 
 map.tile(7, 3).button = {target: {x: 2, y: 7}};
@@ -293,15 +260,6 @@ map.tile(7, 3).button = {target: {x: 2, y: 7}};
 map.tile(2, 7).blockade = true;
 
 putItem(2, 2, 'poo');
-
-console.log("tiles", map);
-
-// map.tile(2, 2).fire = 3;
-// map.tile(3, 2).fire = 1;
-// // map.tile(3, 3).fire = 1;
-// map.tile(7, 1).fire = 3;
-// map.tile(6, 2).flammable = true;
-
 
 function renderEntity(entity) {
 	const color = entity.group == 'player'? 'black' : entity.group == 'unicorn'? 'pink': 'grey';
@@ -352,8 +310,6 @@ function render(time) {
 		if (entity.transition == 1.0) {
 			entity.update(map);
 		}
-
-
 
 	});
 	bullets.forEach(bullet => {
