@@ -196,7 +196,7 @@ const map = Map((x, y) => ({
 	},
 }));
 
-putItem(15, 3, 'barrel');
+putItem(5, 3, 'barrel');
 
 const rainbowColors = ['#ffffff', '#ff4422', '#ffee77', '#44dd33', '#4466ee', '#aa44ff'];
 
@@ -216,19 +216,24 @@ function explodeAnimation(x, y) {
 
 function burn(tile) {
 	tile.fire = 1;
-	if (tile.poo || tile.crate || tile.mine) {
+	if (tile.poo || tile.crate || tile.mine || tile.barrel) {
+		explodeAnimation(tile.x, tile.y);
 		setTimeout(() => {
 			movables.forEach(kind => {
-				console.log("TILE", kind, tile)
-				explodeAnimation(tile.x, tile.y);
 				if (tile[kind] instanceof Entity) {
 					removeEntity(tile[kind]);
 					tile[kind] = null;
 				}
 			});
-
 		}, 1000);
 		tile.fire = FULL_FIRE;
+	}
+	if (tile.barrel) {
+		for (const npos of map.neighbors8(tile.x, tile.y)) {
+			const neighbor = map.tile(npos.x, npos.y);
+			burn(neighbor);
+			neighbor.fire = FULL_FIRE;
+		}
 	}
 
 	const entity = findEntity(tile);
