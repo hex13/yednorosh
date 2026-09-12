@@ -447,13 +447,13 @@ function handleKeyDown(e) {
 					const shootAngle = (Math.atan2(cmd.y, cmd.x) + Math.PI * 2);//% (Math.PI * 2);
 					for (let i = 0; i < 10; i++) {
 						const angle = shootAngle - 0.2 + i * 0.04;
-						const size = Math.abs(4.5 - i) * 2 + 2;//4 + Math.random() * 9;
+						const size = Math.abs(4.5 - i) * 2 + 2;
 						particles.push({
 							x: startX, y: startY,
 							vx: Math.cos(angle) * speed * (Math.random() * 0.3 + 0.85),
 							vy: Math.sin(angle) * speed * (Math.random() * 0.3 + 0.85),
 							size,
-							ttl: 500,
+							ttl: 450,
 							color: size < 7 ? '#f4a741' : size < 10? '##d6824b' : '#d64b4b',
 						});
 					}
