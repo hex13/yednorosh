@@ -85,7 +85,6 @@ class Entity {
 					this.move(nx, ny);
 					if (nextTile.mine) {
 						burn(nextTile);
-						nextTile.mine = null;
 					}
 				}
 
@@ -199,14 +198,17 @@ const map = Map((x, y) => ({
 
 putItem(15, 3, 'barrel');
 
+const rainbowColors = ['#ffffff', '#ff4422', '#ffee77', '#44dd33', '#4466ee', '#aa44ff'];
+
 function explodeAnimation(x, y) {
-	const count = 8;
+	const count = 6;
 	for (let i = 0; i < count; i++) {
 		const angle = Math.PI * 2 * i / count;
 		particles.push({
 			x: x + 0.5, y: y + 0.3,
 			vx: Math.cos(angle) * 0.0006, vy: Math.sin(angle) * 0.0005 - 0.00010,
-			ttl: 600, color: '#fff',
+			ttl: 600,
+			color: '#fff',
 			size: i % 2 == 0? 4 : 2,
 		});
 	}
@@ -214,15 +216,17 @@ function explodeAnimation(x, y) {
 
 function burn(tile) {
 	tile.fire = 1;
-	if (tile.poo || tile.crate) {
+	if (tile.poo || tile.crate || tile.mine) {
 		setTimeout(() => {
 			movables.forEach(kind => {
+				console.log("TILE", kind, tile)
 				explodeAnimation(tile.x, tile.y);
 				if (tile[kind] instanceof Entity) {
 					removeEntity(tile[kind]);
 					tile[kind] = null;
 				}
 			});
+
 		}, 1000);
 		tile.fire = FULL_FIRE;
 	}
