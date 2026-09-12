@@ -10,22 +10,23 @@ const MAP_HEIGHT = 12;
 
 class Tile {}
 
-const images = Object.fromEntries(Object.entries({
-	player: 'player.png',
-	unicorn: 'unicorn.png',
-	crate: 'crate.png',
-	wall: 'wall.png',
-	floor: 'floor.png',
-	poo: 'poo.png',
-	fire: 'fire.png',
-	fireSmall: 'fire-small.png',
-	mine: 'mine.png',
-	button: 'button.png',
-	blockade: 'blockade.png',
-	barrel: 'barrel.png',
-}).map(([name, src]) => {
+const images = Object.fromEntries([
+	'player',
+	'unicorn',
+	'crate',
+	'wall',
+	'floor',
+	'poo',
+	'fire',
+	'fire_small',
+	'mine',
+	'button',
+	'blockade',
+	'barrel',
+].map(name => {
 	const img = new Image();
-	img.src = src;
+	img.src = name + '.png';
+	console.log("sss", img.src)
 	return [name, img];
 }));
 
@@ -341,7 +342,7 @@ function render(time) {
 		const tile = map.tile(x, y);
 		if (tile.fire > 0) {
 			const frame = animLoopCounter % 3;
-			renderSprite(tile.fire == FULL_FIRE? images.fire : images.fireSmall, x, y, frame);
+			renderSprite(tile.fire == FULL_FIRE? images.fire : images.fire_small, x, y, frame);
 		}
 
 	}
