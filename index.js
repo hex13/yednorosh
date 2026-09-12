@@ -1,14 +1,10 @@
 "use strict";
-console.log("yednorosh");
 
 const TILE_SIZE = 80;
 const HALF_TILE_SIZE = TILE_SIZE / 2;
 const FULL_FIRE = 2;
-
 const MAP_WIDTH = 12;
 const MAP_HEIGHT = 12;
-
-class Tile {}
 
 const images = Object.fromEntries([
 	'player',
@@ -26,7 +22,6 @@ const images = Object.fromEntries([
 ].map(name => {
 	const img = new Image();
 	img.src = name + '.png';
-	console.log("sss", img.src)
 	return [name, img];
 }));
 
@@ -71,9 +66,7 @@ class Entity {
 		return mix(this.prevY, this.y, this.transition);
 	}
 	update(map) {
-		if (this.transition < 1.0 || this.dead) {
-			return;
-		}
+		if (this.transition < 1.0 || this.dead) return;
 		switch (this.group) {
 			case 'unicorn': {
 				const nx = this.x + this.dir.x;
@@ -88,18 +81,13 @@ class Entity {
 						burn(nextTile);
 					}
 				}
-
 				break;
 			}
-			default:
-				break;
 		}
 	}
 }
 
 const player = new Entity('player');
-player.x = 0;
-player.y = 0;
 const entities = [player];
 const bullets = [];
 
@@ -111,7 +99,6 @@ for (let i = 0; i < 3; i++) {
 	entities.push(npc);
 }
 
-class Weapon {}
 
 const canvas = document.querySelector("canvas");
 canvas.width = TILE_SIZE * MAP_WIDTH;
@@ -375,17 +362,10 @@ requestAnimationFrame(render);
 setInterval(() => {
 	for (const {x, y} of map) {
 		const tile = map.tile(x, y);
-		// if (map.tile(x - 1, y).fire > tile.fire || map.tile(x + 1, y).fire > tile.fire || map.tile(x, y - 1).fire > tile.fire || map.tile(x, y + 1).fire > tile.fire) {
-		// 	tile.updates.fire = 1;
-		// }
 		for (const npos of map.neighbors8(x, y)) {
 			const neighbor = map.tile(npos.x, npos.y);
 			if (neighbor.fire > 1 && neighbor.fire > tile.fire) tile.updates.fire = 1;
 		}
-		// if (map.tile(x - 1, y).fire > 1) tile.updates.fire += 1;
-		// if (map.tile(x + 1, y).fire > 1) tile.updates.fire += 1;
-		// if (map.tile(x, y - 1).fire > 1) tile.updates.fire += 1;
-		// if (map.tile(x, y + 1).fire > 1) tile.updates.fire += 1;
 		if (tile.fire > 0) tile.updates.fire -= 1;
 
 	}
@@ -397,7 +377,6 @@ setInterval(() => {
 				burn(tile);
 			}
 		}
-
 
 		tile.updates = {fire: 0};
 	}
@@ -423,7 +402,6 @@ function handleKeyDown(e) {
 		const cmd = keymap[e.code];
 		switch (cmd) {
 			case 'shoot':
-				// map.tile(player.x + 1, player.y).fire = FULL_FIRE;
 				const bullet = {x: player.x, y: player.y, vx: 1, vy: 0};
 				bullets.push(bullet);
 				break;
@@ -508,12 +486,6 @@ function handleKeyUp(e) {
 document.addEventListener('keydown', handleKeyDown);
 document.addEventListener('keyup', handleKeyUp);
 
-// const input = ['ArrowLeft', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'Space', 'ArrowDown', 'ArrowDown'];
-const input = ['ArrowDown', 'ArrowDown', 'ArrowRight', 'ArrowRight', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'Space'];
-setInterval(() => {
-	// handleKeyDown({code: input.shift()});
-}, 700);
-
 setInterval(() => {
 	animLoopCounter += 1;
 }, 200);
@@ -556,8 +528,6 @@ function initJoystick(el, action) {
 				keyboardState.Space = false;
 				joystickStart = false;
 			}
-
-
 		}
 	});
 	joystick.addEventListener('pointerup', (e) => {
