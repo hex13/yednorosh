@@ -178,7 +178,7 @@ function initLevel() {
 		renderSprite(img, x, y, frame);
 
 		if (tile.button) {
-			frame = map.tile(tile.button.target.x, tile.button.target.y).blockade? ~~(animLoopCounter / 3) % 2 : 2;
+			frame = map.tile(tile.button.target.x, tile.button.target.y).blockade? 0 : 1;
 		}
 
 		itemKinds.forEach(kind => {
