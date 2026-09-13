@@ -75,7 +75,7 @@ class Entity {
 	screenY() {
 		return mix(this.prevY, this.y, this.transition);
 	}
-	update(map) {
+	update(map, burn) {
 		if (this.transition < 1.0 || this.dead) return;
 		switch (this.group) {
 			case 'unicorn': {
@@ -299,7 +299,7 @@ function initLevel() {
 				entity.transition = 1.0;
 			}
 			if (entity.transition == 1.0) {
-				entity.update(map);
+				entity.update(map, burn);
 			}
 		});
 
