@@ -232,15 +232,18 @@ function render(time) {
 		}
 	};
 
-	if (player.immuneCounter == 0 && entities.find(e => e.x == player.x && e.y == player.y && e.group == 'unicorn')) {
-		player.energy -= 40;
-		if (player.energy <= 0) {
-			player.energy = 0;
-			levelCounter++;
-			initLevel(levelCounter);
+	if (player.immuneCounter == 0) {
+		const playerTile = map.tile(player.x, player.y);
+		if  (entities.find(e => e.x == player.x && e.y == player.y && e.group == 'unicorn') || playerTile.fire) {
+			player.energy -= 40;
+			if (player.energy <= 0) {
+				player.energy = 0;
+				levelCounter++;
+				initLevel(levelCounter);
+			}
+			updateEnergyBar();
+			player.immuneCounter = 1500;
 		}
-		updateEnergyBar();
-		player.immuneCounter = 1500;
 	}
 	player.immuneCounter = Math.max(0, player.immuneCounter - delta);
 
