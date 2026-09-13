@@ -8,6 +8,15 @@ const MAP_HEIGHT = 12;
 const { cos, sin, random, abs, PI} = Math;
 
 const images = {};
+
+const keymap = {
+	'ArrowLeft': {x: -1, y: 0},
+	'ArrowRight': {x: +1, y: 0},
+	'ArrowDown': {x: 0, y: 1},
+	'ArrowUp': {x: 0, y: -1},
+	'Space': 'fire',
+};
+
 for (const name of [
 	'player',
 	'unicorn',
@@ -120,6 +129,34 @@ canvas.height = TILE_SIZE * MAP_HEIGHT;
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
+let animLoopCounter = 0;
+setInterval(() => {
+	animLoopCounter += 1;
+}, 200);
+
+function renderEntity(entity) {
+	const color = entity.group == 'player'? 'black' : entity.group == 'unicorn'? 'pink': 'grey';
+	ctx.fillStyle = color;
+	const size = 16;
+	const x = entity.screenX();
+	const y = entity.screenY();
+	let frame = 0;
+	if (entity.group == 'player') {
+		frame = animLoopCounter % 3;
+	} else if (entity.group == 'unicorn') {
+		frame = entity.dead? 2 : animLoopCounter % 2;
+		if (entity.dir.x < 0) {
+			frame += 3;
+		}
+	}
+	renderSprite(images[entity.group], x, y, frame);
+}
+
+function renderSprite(img, x, y, frame = 0) {
+	ctx.drawImage(img, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+}
+
+
 //-------------------------------------------------------------------------------------------
 
 const particles = [];
@@ -135,7 +172,7 @@ for (let i = 0; i < 3; i++) {
 	entities.push(npc);
 }
 
-let animLoopCounter = 0;
+
 function renderTile(x, y, tile) {
 	let color = '#432';
 	let rendered = false;
@@ -170,12 +207,6 @@ const map = Map((x, y) => ({
 	x, y,
 	fire: 0,
 	wall: null,
-	get flammable() {
-		if (this.poo) return true;
-		const entitiesOnTile = findEntity(this);
-		if (entitiesOnTile) return true;
-		return false;
-	},
 	updates: {
 		fire: 0,
 	},
@@ -183,7 +214,6 @@ const map = Map((x, y) => ({
 
 putItem(5, 3, 'barrel');
 
-const rainbowColors = ['#ffffff', '#ff4422', '#ffee77', '#44dd33', '#4466ee', '#aa44ff'];
 
 function explodeAnimation(x, y) {
 	const count = 6;
@@ -270,28 +300,6 @@ map.tile(2, 7).blockade = true;
 
 putItem(2, 2, 'poo');
 
-function renderEntity(entity) {
-	const color = entity.group == 'player'? 'black' : entity.group == 'unicorn'? 'pink': 'grey';
-	ctx.fillStyle = color;
-	const size = 16;
-	const x = entity.screenX();
-	const y = entity.screenY();
-	let frame = 0;
-	if (entity.group == 'player') {
-		frame = animLoopCounter % 3;
-	} else if (entity.group == 'unicorn') {
-		frame = entity.dead? 2 : animLoopCounter % 2;
-		if (entity.dir.x < 0) {
-			frame += 3;
-		}
-	}
-	renderSprite(images[entity.group], x, y, frame);
-}
-
-function renderSprite(img, x, y, frame = 0) {
-	ctx.drawImage(img, (frame % 2) * 32, ~~(frame / 2 ) * 32, 32, 32, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-}
-
 let lastTime;
 function render(time) {
 	const delta = lastTime? time - lastTime : 16;
@@ -309,7 +317,6 @@ function render(time) {
 		if (entity.transition == 1.0) {
 			entity.update(map);
 		}
-
 	});
 
 	for (const {x, y} of map) {
@@ -331,7 +338,6 @@ function render(time) {
 		if (particle.ttl <= 0) {
 			particles.splice(i, 1);
 		}
-
 	};
 	requestAnimationFrame(render);
 }
@@ -352,24 +358,13 @@ setInterval(() => {
 		const tile = map.tile(x, y);
 		tile.fire += Math.sign(tile.updates.fire);
 		if (tile.updates.fire > 0) {
-			if (tile.flammable) {
+			if (findEntity(tile)) {
 				burn(tile);
 			}
 		}
-
 		tile.updates = {fire: 0};
 	}
-
 }, 1200);
-
-const keymap = {
-	'ArrowLeft': {x: -1, y: 0},
-	'ArrowRight': {x: +1, y: 0},
-	'ArrowDown': {x: 0, y: 1},
-	'ArrowUp': {x: 0, y: -1},
-	'Space': 'fire',
-	'KeyM': 'mine',
-}
 
 const keyboardState = {}
 
@@ -379,9 +374,6 @@ function handleKeyDown(e) {
 
 		const cmd = keymap[e.code];
 		switch (cmd) {
-			case 'mine':
-				map.tile(player.x, player.y).mine = true;
-				break;
 			default:
 				if (keyboardState.Space) {
 					burn(map.tile(player.x + cmd.x, player.y + cmd.y));
@@ -457,11 +449,6 @@ function handleKeyUp(e) {
 }
 document.addEventListener('keydown', handleKeyDown);
 document.addEventListener('keyup', handleKeyUp);
-
-setInterval(() => {
-	animLoopCounter += 1;
-}, 200);
-
 
 function initJoystick(el, action) {
 	const joystick = el;
