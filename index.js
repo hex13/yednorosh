@@ -440,7 +440,7 @@ function initLevel(level) {
 						}
 					} else if (player.transition == 1.0) {
 						const nextTile = map.tile(player.x + cmd.x, player.y + cmd.y);
-						let canEnter = !nextTile.wall && !nextTile.blockade;
+						let canEnter = !nextTile.wall && !nextTile.blockade && map.inBounds(nextTile.x, nextTile.y);
 						if (nextTile.button) {
 							const targetTile = map.tile(nextTile.button.target.x, nextTile.button.target.y);
 							targetTile.blockade = !targetTile.blockade;
