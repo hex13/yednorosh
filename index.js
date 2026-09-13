@@ -10,11 +10,13 @@ if (!navigator.maxTouchPoints) {
 } else {
 	document.querySelector('#keyboard-legend').style.display = 'none';
 }
+const levelInfo = document.getElementById('level');
 
 const { cos, sin, random, abs, PI} = Math;
 
 const images = {};
-
+const levelColors = ['#c74f4f', '#d6c25e', '#51a537', '#405994']
+const levelColorNames = ['red', 'yellow', 'green', 'blue']
 const keymap = {
 	'ArrowLeft': {x: -1, y: 0},
 	'ArrowRight': {x: +1, y: 0},
@@ -201,6 +203,7 @@ let entities;
 let player;
 let lastTime;
 let burn;
+let level = 0;
 let visited = Object.create(null);
 const particles = [];
 
@@ -244,8 +247,19 @@ function render(time) {
 		}
 	};
 
+	const playerTile = map.tile(player.x, player.y);
+	if (playerTile.exit) {
+		if (level < 3) {
+			level++;
+		} else {
+			const msg = document.getElementById('congratulations');
+			msg.style.maxHeight = '100vh';
+		}
+		initLevel();
+	}
+
 	if (player.immuneCounter == 0) {
-		const playerTile = map.tile(player.x, player.y);
+
 		if (playerTile.mine) {
 			burn(playerTile);
 		}
@@ -268,8 +282,7 @@ function render(time) {
 requestAnimationFrame(render);
 
 
-//-------------------------------------------------
-function initLevel(level) {
+function initLevel() {
 	lastTime = null;
 
 	player = new Entity('player');
@@ -539,10 +552,14 @@ function initLevel(level) {
 
 		map.tile(0, 11).exit = true;
 	}
+	const levels = [level1, level2, level3, level4];
 
-	level3();
+	levels[level]();
+	canvas.style.border = `10px solid ${levelColors[level]}`;
 
-	document.getElementById('level').innerText = "some level";
+
+	levelInfo.innerText = "Level " + levelColorNames[level];
+	levelInfo.style.color = levelColors[level];
 
 
 	setInterval(() => {
