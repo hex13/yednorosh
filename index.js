@@ -192,9 +192,11 @@ let entities;
 let player;
 let lastTime;
 let burn;
+let visited = Object.create(null);
 const particles = [];
 
 function render(time) {
+	visited = Object.create(null);
 	const delta = lastTime? time - lastTime : 16;
 	lastTime = time;
 
@@ -295,6 +297,7 @@ function initLevel(level) {
 	}
 
 	burn = (tile) => {
+
 		tile.fire = 1;
 		if (tile.poo || tile.crate || tile.mine || tile.barrel) {
 			explodeAnimation(tile.x, tile.y);
@@ -310,6 +313,8 @@ function initLevel(level) {
 		}
 		if (tile.barrel) {
 			for (const npos of map.neighbors8(tile.x, tile.y)) {
+				if (visited[npos.x + ',' + npos.y]) continue;
+				visited[npos.x + ',' + npos.y] = true;
 				const neighbor = map.tile(npos.x, npos.y);
 				burn(neighbor);
 				neighbor.fire = FULL_FIRE;
