@@ -42,6 +42,8 @@ const movables = directMovables.concat(indirectMovables);
 
 const itemKinds = ['poo', 'mine', 'button', 'blockade', 'barrel'];
 
+const energyBar = document.querySelector('.energy');
+
 const mix = (a, b, t) => a * (1 - t) + b * t;
 
 class Entity {
@@ -49,6 +51,7 @@ class Entity {
 		this.group = group;
 		this.x = x;
 		this.y = y;
+		this.energy = 100;
 		this.prevX = this.x;
 		this.prevY = this.y;
 		this.dir = {x: 1, y: 0};
@@ -146,6 +149,7 @@ function renderEntity(entity) {
 			frame += 3;
 		}
 	}
+	if (entity.immuneCounter > 0 && animLoopCounter % 2 == 0) return;
 	renderSprite(images[entity.group], x, y, frame);
 }
 
@@ -154,14 +158,19 @@ function renderSprite(img, x, y, frame = 0) {
 }
 
 
-//-------------------------------------------------------------------------------------------
 
 function initLevel() {
 	const particles = [];
 
 
 	const player = new Entity('player');
+	player.immuneCounter = 0;
 	const entities = [player];
+
+	function updateEnergyBar() {
+		energyBar.style.width = (player.energy * 2) + 'px';
+	}
+
 
 	for (let i = 0; i < 3; i++) {
 		const npc = new Entity('unicorn')
@@ -314,6 +323,18 @@ function initLevel() {
 				particles.splice(i, 1);
 			}
 		};
+
+		if (player.immuneCounter == 0 && entities.find(e => e.x == player.x && e.y == player.y && e.group == 'unicorn')) {
+			player.energy -= 40;
+			if (player.energy <= 0) {
+				player.energy = 0;
+			}
+			updateEnergyBar();
+			player.immuneCounter = 1500;
+		}
+		player.immuneCounter = Math.max(0, player.immuneCounter - delta);
+
+
 		requestAnimationFrame(render);
 	}
 

@@ -1,5 +1,8 @@
 <html>
 <div id="app"></div>
+energy: <div class="energy-wrapper">
+	<div class="energy"></div>
+</div>
 <canvas></canvas>
 <div class="joysticks">
 	<div class="joystick-desc">drag to move
@@ -15,6 +18,7 @@
 <style>
 	body {
 		font-family: sans-serif;
+		font-size: 20px;
 	}
 	canvas {
 		background: #600;
@@ -22,6 +26,21 @@
 	* {
 		user-select: none;
 		 -webkit-user-select: none;
+	}
+	.energy-wrapper {
+		border-radius: 4px;
+		top: 0;
+		width: 200px;
+		height: 40px;
+		border: 2px solid white;
+		background: black;
+	}
+	.energy {
+		border-radius: 4px;
+		height: 40px;
+		width: 200px;
+		background: #9a75e1;
+		transition: width 1s;
 	}
 	.joysticks {
 		touch-action: none;
