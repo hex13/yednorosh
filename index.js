@@ -475,10 +475,63 @@ function initLevel(level) {
 		entities.push(new Entity('unicorn', 10, 2));
 		entities.push(new Entity('unicorn', 10, 5));
 	}
-	level3();
+
+	function level4() {
+		let x = 3;
+		let y = 4;
+		for (let i = 0; i < 5; i++) {
+			map.tile(x - 1, y - 2).wall = true;
+			map.tile(x, y).wall = true;
+			map.tile(x, y + 2).wall = true;
+			map.tile(x - 3, y + 4).wall = true;
+			map.tile(x + 3, y + 6).wall = true;
+			// map.tile(x - 4, y + 6).wall = true;
+			map.tile(x + 3, y + 4).wall = true;
+			x++;
+		}
+		map.tile(x, y + 2).wall = true;
+		x++;
+		map.tile(x, y + 2).wall = true;
+		y--;
+		map.tile(x, y + 2).wall = true;
+		y--;
+		map.tile(x, y + 2).wall = true;
+
+		map.tile(0, 10).wall = true;
+		map.tile(1, 10).wall = true;
+
+		putItem(10, 4, 'mine');
+		putItem(11, 4, 'mine');
+
+
+		putItem(3, 5, 'crate');
+		putItem(10, 2, 'crate');
+		putItem(1, 5, 'crate');
+
+		putItem(1, 0, 'barrel');
+		putItem(2, 0, 'mine');
+		putItem(2, 1, 'mine');
+		putItem(1, 1, 'barrel');
+
+		putItem(3, 10, 'mine');
+
+		map.tile(6, 5).button = {target: {x: 1, y: 11}};
+		map.tile(1, 11).blockade = true;
+		entities.push(new Entity('unicorn', 6, 0));
+		entities.push(new Entity('unicorn', 5, 1));
+		entities.push(new Entity('unicorn', 1, 2));
+		entities.push(new Entity('unicorn', 1, 3));
+		entities.push(new Entity('unicorn', 1, 7));
+		entities.push(new Entity('unicorn', 1, 9));
+	}
+
+	level4();
+
+	document.getElementById('level').innerText = "some level";
 
 
 	setInterval(() => {
+		// const visited = Object.create(null);
 		for (const {x, y} of map) {
 			const tile = map.tile(x, y);
 			for (const npos of map.neighbors8(x, y)) {
