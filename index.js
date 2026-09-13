@@ -135,9 +135,6 @@ setInterval(() => {
 }, 200);
 
 function renderEntity(entity) {
-	const color = entity.group == 'player'? 'black' : entity.group == 'unicorn'? 'pink': 'grey';
-	ctx.fillStyle = color;
-	const size = 16;
 	const x = entity.screenX();
 	const y = entity.screenY();
 	let frame = 0;
@@ -179,9 +176,6 @@ function renderTile(x, y, tile) {
 	if (tile.wall) {
 		let frame = 0;
 		const img = images.wall;
-		// if (tile.wall && tile.graffiti) {
-		// 	frame = tile.graffiti;
-		// }
 		renderSprite(img, x, y, frame);
 		rendered = true;
 	}
@@ -270,15 +264,6 @@ function removeEntity(entity) {
 	}
 }
 
-for (let y = 10; y < 15; y++) {
-	for (let x = 3; x < 10; x++) {
-		map.tile(x, y).wall = true;
-	}
-}
-map.tile(10, 5).graffiti = 1;
-map.tile(10, 8).graffiti = 2;
-map.tile(5, 14).graffiti = 3;
-map.tile(7, 14).graffiti = 4;
 for (let y = 3; y <= 10; y++) {
 	map.tile(10, y).wall = true;
 }
