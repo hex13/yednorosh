@@ -345,7 +345,6 @@ function initLevel(level) {
 	}
 
 	function level1() {
-		// putItem(6, 2, 'crate');
 		putItem(6, 2, 'mine');
 		for (let x = 0; x < 4; x++) {
 			putItem(x, 4, x % 2? 'mine' : 'crate');
@@ -386,7 +385,51 @@ function initLevel(level) {
 		}
 
 	}
-	level1();
+	function level2() {
+		let x = 0;
+		let y = 7;
+		player.x = 1;
+		for (x = 2; x < 10; x++) {
+			map.tile(x, 10).wall = true;
+			// putItem(x, 10, 'crate');
+		}
+		for (x = 0; x < 6; x++) {
+			map.tile(x, 4).wall = true;
+			// putItem(x, 10, 'crate');
+		}
+
+		putItem(1, 9, 'barrel');
+		for (y = 5; y < 10; y++) {
+			map.tile(9, y).wall = true;
+		}
+
+
+		putItem(0, 10, 'mine');
+		putItem(8, 11, 'crate');
+		putItem(7, 11, 'crate');
+
+		map.tile(2, 11).blockade = true;
+		map.tile(9, 11).blockade = true;
+		map.tile(0, 9).button = {target: {x: 9, y: 11}};
+		map.tile(11, 0).button = {target: {x: 2, y: 11}};
+		putItem(2, 9, 'mine');
+		putItem(2, 3, 'barrel');
+		putItem(5, 0, 'mine');
+		putItem(3, 1, 'mine');
+		putItem(6, 1, 'crate');
+		putItem(7, 6, 'barrel');
+		{
+			entities.push(new Entity('unicorn', 1, 8));
+			entities.push(new Entity('unicorn', 3, 11));
+			entities.push(new Entity('unicorn', 8, 1));
+			entities.push(new Entity('unicorn', 3, 3));
+			entities.push(new Entity('unicorn', 2, 6));
+			entities.push(new Entity('unicorn', 6, 3));
+			entities.push(new Entity('unicorn', 1, 2));
+		}
+
+	}
+	level2();
 
 
 	setInterval(() => {
@@ -409,7 +452,7 @@ function initLevel(level) {
 			}
 			tile.updates = {fire: 0};
 		}
-	}, 1200);
+	}, 1000);
 
 	const keyboardState = {}
 
