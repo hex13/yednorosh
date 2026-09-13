@@ -429,7 +429,48 @@ function initLevel(level) {
 		}
 
 	}
-	level2();
+
+	function level3() {
+		for (let y = 3; y < 9; y++) {
+			map.tile(0, y).wall = true;
+			map.tile(y, 2).wall = true;
+		}
+		putItem(1, 4, 'crate');
+		putItem(2, 4, 'crate');
+		putItem(3, 3, 'crate');
+		putItem(3, 4, 'crate');
+		putItem(3, 5, 'crate');
+		putItem(4, 5, 'crate');
+		putItem(1, 7, 'crate');
+		putItem(2, 7, 'crate');
+		putItem(3, 7, 'crate');
+		putItem(3, 6, 'crate');
+		putItem(1, 8, 'crate');
+		putItem(3, 8, 'crate');
+		putItem(2, 9, 'crate');
+		putItem(1, 10, 'crate');
+		putItem(2, 10, 'crate');
+		putItem(6, 7, 'crate');
+		putItem(4, 9, 'crate');
+		putItem(4, 10, 'crate');
+		putItem(7, 5, 'crate');
+		putItem(6, 5, 'crate');
+		putItem(8, 8, 'crate');
+		putItem(5, 8, 'crate');
+		putItem(5, 10, 'crate');
+		putItem(5, 11, 'crate');
+		putItem(3, 10, 'mine');
+		putItem(5, 0, 'poo');
+		putItem(7, 1, 'poo');
+		putItem(8, 4, 'poo');
+		entities.push(new Entity('unicorn', 4, 7));
+		entities.push(new Entity('unicorn', 2, 2));
+		entities.push(new Entity('unicorn', 1, 1));
+		entities.push(new Entity('unicorn', 4, 0));
+		entities.push(new Entity('unicorn', 10, 2));
+		entities.push(new Entity('unicorn', 10, 5));
+	}
+	level3();
 
 
 	setInterval(() => {
