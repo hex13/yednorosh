@@ -290,8 +290,9 @@ function initLevel() {
 
 	entities = [player];
 
-
-
+	const addEntity = (...args) => {
+		entities.push(new Entity(...args));
+	};
 	map = Map((x, y) => ({
 		x, y,
 		fire: 0,
@@ -300,9 +301,6 @@ function initLevel() {
 			fire: 0,
 		},
 	}));
-
-
-
 
 	function explodeAnimation(x, y) {
 		const count = 6;
@@ -405,10 +403,7 @@ function initLevel() {
 
 		for (let a = 0; a < 2; a++) {
 			for (let i = 0; i < 4; i++) {
-				const npc = new Entity('unicorn')
-				npc.x = a * 4 +  i;
-				npc.y = 5 + i;
-				entities.push(npc);
+				addEntity('unicorn', a * 4 + i, 5 + i);
 			}
 		}
 
@@ -420,18 +415,15 @@ function initLevel() {
 		player.x = 1;
 		for (x = 2; x < 10; x++) {
 			map.tile(x, 10).wall = true;
-			// putItem(x, 10, 'crate');
 		}
 		for (x = 0; x < 6; x++) {
 			map.tile(x, 4).wall = true;
-			// putItem(x, 10, 'crate');
 		}
 
 		putItem(1, 9, 'barrel');
 		for (y = 5; y < 10; y++) {
 			map.tile(9, y).wall = true;
 		}
-
 
 		putItem(0, 10, 'mine');
 		putItem(8, 11, 'crate');
@@ -449,15 +441,14 @@ function initLevel() {
 		putItem(7, 6, 'barrel');
 		map.tile(4, 11).exit = true;
 		{
-			entities.push(new Entity('unicorn', 1, 8));
-			entities.push(new Entity('unicorn', 3, 11));
-			entities.push(new Entity('unicorn', 8, 1));
-			entities.push(new Entity('unicorn', 3, 3));
-			entities.push(new Entity('unicorn', 2, 6));
-			entities.push(new Entity('unicorn', 6, 3));
-			entities.push(new Entity('unicorn', 1, 2));
+			addEntity('unicorn', 1, 8);
+			addEntity('unicorn', 3, 11);
+			addEntity('unicorn', 8, 1);
+			addEntity('unicorn', 3, 3);
+			addEntity('unicorn', 2, 6);
+			addEntity('unicorn', 6, 3);
+			addEntity('unicorn', 1, 2);
 		}
-
 	}
 
 	function level3() {
@@ -493,12 +484,12 @@ function initLevel() {
 		putItem(5, 0, 'poo');
 		putItem(7, 1, 'poo');
 		putItem(8, 4, 'poo');
-		entities.push(new Entity('unicorn', 4, 7));
-		entities.push(new Entity('unicorn', 2, 2));
-		entities.push(new Entity('unicorn', 1, 1));
-		entities.push(new Entity('unicorn', 4, 0));
-		entities.push(new Entity('unicorn', 10, 2));
-		entities.push(new Entity('unicorn', 10, 5));
+		addEntity('unicorn', 4, 7);
+		addEntity('unicorn', 2, 2);
+		addEntity('unicorn', 1, 1);
+		addEntity('unicorn', 4, 0);
+		addEntity('unicorn', 10, 2);
+		addEntity('unicorn', 10, 5);
 		map.tile(0, 11).exit = true;
 	}
 
@@ -543,12 +534,12 @@ function initLevel() {
 
 		map.tile(6, 5).button = {target: {x: 1, y: 11}};
 		map.tile(1, 11).blockade = true;
-		entities.push(new Entity('unicorn', 6, 0));
-		entities.push(new Entity('unicorn', 5, 1));
-		entities.push(new Entity('unicorn', 1, 2));
-		entities.push(new Entity('unicorn', 1, 3));
-		entities.push(new Entity('unicorn', 1, 7));
-		entities.push(new Entity('unicorn', 1, 9));
+		addEntity('unicorn', 6, 0);
+		addEntity('unicorn', 5, 1);
+		addEntity('unicorn', 1, 2);
+		addEntity('unicorn', 1, 3);
+		addEntity('unicorn', 1, 7);
+		addEntity('unicorn', 1, 9);
 
 		map.tile(0, 11).exit = true;
 	}
