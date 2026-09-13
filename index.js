@@ -192,7 +192,7 @@ function renderTile(x, y, tile) {
 		renderSprite(images.floor, x, y, frame);
 
 		if (tile.button) {
-			frame = map.tile(tile.button.target.x, tile.button.target.y).blockade? animLoopCounter % 6 : 6;
+			frame = map.tile(tile.button.target.x, tile.button.target.y).blockade? ~~(animLoopCounter / 3) % 2 : 2;
 		}
 
 		itemKinds.forEach(kind => {
