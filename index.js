@@ -172,6 +172,15 @@ function renderSprite(img, x, y, frame = 0) {
 
 
 function renderTile(x, y, tile) {
+	if (tile.exit) {
+		ctx.fillStyle = '#000000';
+		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+		const size = (Math.sin((lastTime / 2000) % Math.PI * 2) + 1) / 2 * TILE_SIZE;
+		ctx.fillStyle = '#ccaaff';
+		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, size, TILE_SIZE);
+
+		return;
+	}
 	let frame = 0;
 	const img = tile.wall? images.wall : images.floor;
 
@@ -368,6 +377,7 @@ function initLevel(level) {
 
 		map.tile(7, 3).button = {target: {x: 5, y: 10}};
 		map.tile(5, 10).blockade = true;
+		map.tile(5, 11).exit = true;
 
 		for (let x = 0; x < 12; x++) {
 			if (x == 5) continue;
@@ -388,6 +398,7 @@ function initLevel(level) {
 				entities.push(npc);
 			}
 		}
+
 
 	}
 	function level2() {
@@ -423,6 +434,7 @@ function initLevel(level) {
 		putItem(3, 1, 'mine');
 		putItem(6, 1, 'crate');
 		putItem(7, 6, 'barrel');
+		map.tile(4, 11).exit = true;
 		{
 			entities.push(new Entity('unicorn', 1, 8));
 			entities.push(new Entity('unicorn', 3, 11));
@@ -474,6 +486,7 @@ function initLevel(level) {
 		entities.push(new Entity('unicorn', 4, 0));
 		entities.push(new Entity('unicorn', 10, 2));
 		entities.push(new Entity('unicorn', 10, 5));
+		map.tile(0, 11).exit = true;
 	}
 
 	function level4() {
@@ -523,9 +536,11 @@ function initLevel(level) {
 		entities.push(new Entity('unicorn', 1, 3));
 		entities.push(new Entity('unicorn', 1, 7));
 		entities.push(new Entity('unicorn', 1, 9));
+
+		map.tile(0, 11).exit = true;
 	}
 
-	level4();
+	level3();
 
 	document.getElementById('level').innerText = "some level";
 
