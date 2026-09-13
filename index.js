@@ -179,9 +179,9 @@ function renderTile(x, y, tile) {
 	if (tile.wall) {
 		let frame = 0;
 		const img = images.wall;
-		if (tile.wall && tile.graffiti) {
-			frame = tile.graffiti;
-		}
+		// if (tile.wall && tile.graffiti) {
+		// 	frame = tile.graffiti;
+		// }
 		renderSprite(img, x, y, frame);
 		rendered = true;
 	}
