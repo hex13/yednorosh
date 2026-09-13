@@ -234,8 +234,11 @@ function render(time) {
 
 	if (player.immuneCounter == 0) {
 		const playerTile = map.tile(player.x, player.y);
-		if  (entities.find(e => e.x == player.x && e.y == player.y && e.group == 'unicorn') || playerTile.fire) {
-			player.energy -= 40;
+		if (playerTile.mine) {
+			burn(playerTile);
+		}
+		if  (entities.find(e => e.x == player.x && e.y == player.y && e.group == 'unicorn') || playerTile.fire || playerTile.poo) {
+			player.energy -= 60;
 			if (player.energy <= 0) {
 				player.energy = 0;
 				levelCounter++;
@@ -263,13 +266,6 @@ function initLevel(level) {
 	entities = [player];
 
 
-	for (let i = 0; i < 3; i++) {
-		const npc = new Entity('unicorn')
-		npc.x = 3 + i;
-		npc.y = 5 + i;
-		entities.push(npc);
-	}
-
 
 	map = Map((x, y) => ({
 		x, y,
@@ -280,7 +276,7 @@ function initLevel(level) {
 		},
 	}));
 
-	putItem(5, 3, 'barrel');
+
 
 
 	function explodeAnimation(x, y) {
@@ -338,9 +334,7 @@ function initLevel(level) {
 		}
 	}
 
-	for (let y = 3; y <= 10; y++) {
-		map.tile(10, y).wall = true;
-	}
+
 
 
 	function putItem(x, y, kind) {
@@ -349,15 +343,49 @@ function initLevel(level) {
 		entities.push(entity);
 	}
 
-	putItem(1, 2, 'crate');
-	putItem(6, 2, 'crate');
-	putItem(5, 2, 'mine');
+	function level1() {
+		// putItem(6, 2, 'crate');
+		putItem(6, 2, 'mine');
+		for (let x = 0; x < 4; x++) {
+			putItem(x, 4, x % 2? 'mine' : 'crate');
+		}
+		putItem(3, 2, 'crate');
+		putItem(4, 3, 'crate');
+		putItem(4, 6, 'crate');
+		for (let x = 0; x <= 2; x++) {
+			map.tile(x, 2).wall = true;
+		}
+		map.tile(5, 4).wall = true;
+		map.tile(6, 0).wall = true;
+		map.tile(6, 1).wall = true;
+		map.tile(6, 3).wall = true;
+		map.tile(6, 4).wall = true;
 
-	map.tile(7, 3).button = {target: {x: 2, y: 7}};
+		map.tile(7, 3).button = {target: {x: 5, y: 10}};
+		map.tile(5, 10).blockade = true;
 
-	map.tile(2, 7).blockade = true;
+		for (let x = 0; x < 12; x++) {
+			if (x == 5) continue;
+			map.tile(x, 10).wall = true;
+		}
 
-	putItem(2, 2, 'poo');
+		putItem(7, 5, 'poo');
+		putItem(7, 6, 'poo');
+		putItem(7, 7, 'poo');
+		putItem(7, 8, 'poo');
+		putItem(9, 9, 'poo');
+
+		for (let a = 0; a < 2; a++) {
+			for (let i = 0; i < 4; i++) {
+				const npc = new Entity('unicorn')
+				npc.x = a * 4 +  i;
+				npc.y = 5 + i;
+				entities.push(npc);
+			}
+		}
+
+	}
+	level1();
 
 
 	setInterval(() => {
