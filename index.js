@@ -171,30 +171,19 @@ for (let i = 0; i < 3; i++) {
 
 
 function renderTile(x, y, tile) {
-	let color = '#432';
-	let rendered = false;
-	if (tile.wall) {
-		let frame = 0;
-		const img = images.wall;
-		renderSprite(img, x, y, frame);
-		rendered = true;
+	let frame = 0;
+	const img = tile.wall? images.wall : images.floor;
+
+	renderSprite(img, x, y, frame);
+
+	if (tile.button) {
+		frame = map.tile(tile.button.target.x, tile.button.target.y).blockade? ~~(animLoopCounter / 3) % 2 : 2;
 	}
 
-	if (!rendered) {
-		let frame = 0;
-
-		renderSprite(images.floor, x, y, frame);
-
-		if (tile.button) {
-			frame = map.tile(tile.button.target.x, tile.button.target.y).blockade? ~~(animLoopCounter / 3) % 2 : 2;
-		}
-
-		itemKinds.forEach(kind => {
-			if (directMovables.includes(kind) || indirectMovables.includes(kind)) return;
-			if (tile[kind])	renderSprite(images[kind], x, y, frame);
-		});
-	}
-
+	itemKinds.forEach(kind => {
+		if (directMovables.includes(kind) || indirectMovables.includes(kind)) return;
+		if (tile[kind])	renderSprite(images[kind], x, y, frame);
+	});
 }
 
 const map = Map((x, y) => ({
