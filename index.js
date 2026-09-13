@@ -89,7 +89,7 @@ class Entity {
 				const nx = this.x + this.dir.x;
 				const ny = this.y + this.dir.y;
 				const nextTile = map.tile(nx, ny);
-				if (!map.inBounds(nx, ny) || nextTile.wall || nextTile.blockade || nextTile.crate) {
+				if (!map.inBounds(nx, ny) || nextTile.wall || nextTile.blockade || nextTile.crate || nextTile.barrel) {
 					this.dir.x *= -1;
 					this.dir.y *= -1;
 				} else {
@@ -124,6 +124,7 @@ function Map(create) {
 			for (let dy = -1; dy <= 1; dy++) {
 				for (let dx = -1; dx <= 1; dx++) {
 					if (dx == 0 && dy == 0) continue;
+					if (!this.inBounds(x + dx, y + dy)) continue;
 					yield {x: x + dx, y: y + dy};
 				}
 			}
@@ -451,7 +452,7 @@ function initLevel(level) {
 								const movableNextTile = map.tile(player.x + cmd.x * 2, player.y + cmd.y * 2);
 								if (directMovables.find(kind => movableNextTile[kind])) {
 									canEnter = false;
-								} else if (movableNextTile.wall || findEntity(movableNextTile)?.group == 'unicorn') {
+								} else if (movableNextTile.wall || !map.inBounds(movableNextTile.x, movableNextTile.y) || findEntity(movableNextTile)?.group == 'unicorn') {
 									canEnter = false;
 								}
 								if (canEnter) {
