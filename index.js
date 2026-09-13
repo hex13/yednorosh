@@ -46,6 +46,7 @@ const energyBar = document.querySelector('.energy');
 
 const mix = (a, b, t) => a * (1 - t) + b * t;
 
+let levelCounter = 0;
 class Entity {
 	constructor(group = '', x = 0, y = 0) {
 		this.group = group;
@@ -126,6 +127,11 @@ function Map(create) {
 	return map;
 }
 
+function updateEnergyBar() {
+	energyBar.style.width = (player.energy * 2) + 'px';
+}
+
+
 const canvas = document.querySelector("canvas");
 canvas.width = TILE_SIZE * MAP_WIDTH;
 canvas.height = TILE_SIZE * MAP_HEIGHT;
@@ -158,18 +164,94 @@ function renderSprite(img, x, y, frame = 0) {
 }
 
 
+function renderTile(x, y, tile) {
+	let frame = 0;
+	const img = tile.wall? images.wall : images.floor;
 
-function initLevel() {
-	const particles = [];
+	renderSprite(img, x, y, frame);
 
-
-	const player = new Entity('player');
-	player.immuneCounter = 0;
-	const entities = [player];
-
-	function updateEnergyBar() {
-		energyBar.style.width = (player.energy * 2) + 'px';
+	if (tile.button) {
+		frame = map.tile(tile.button.target.x, tile.button.target.y).blockade? 0 : 1;
 	}
+
+	itemKinds.forEach(kind => {
+		if (directMovables.includes(kind) || indirectMovables.includes(kind)) return;
+		if (tile[kind])	renderSprite(images[kind], x, y, frame);
+	});
+}
+
+let map;
+let entities;
+let player;
+let lastTime;
+let burn;
+const particles = [];
+
+function render(time) {
+	const delta = lastTime? time - lastTime : 16;
+	lastTime = time;
+
+	for (const {x, y} of map) {
+		renderTile(x, y, map.tile(x, y));
+	}
+	entities.forEach(entity => {
+		renderEntity(entity);
+		entity.transition += delta * entity.speed;
+		if (entity.transition >= 1.0) {
+			entity.transition = 1.0;
+		}
+		if (entity.transition == 1.0) {
+			entity.update(map, burn);
+		}
+	});
+
+	for (const {x, y} of map) {
+		const tile = map.tile(x, y);
+		if (tile.fire > 0) {
+			const frame = animLoopCounter % 3;
+			renderSprite(tile.fire == FULL_FIRE? images.fire : images.fire_small, x, y, frame);
+		}
+	}
+
+	for (let i = particles.length - 1; i >= 0; i--) {
+		const particle = particles[i];
+		ctx.fillStyle = particle.color;
+		ctx.fillRect(particle.x * TILE_SIZE - particle.size / 2, particle.y * TILE_SIZE - particle.size / 2, particle.size, particle.size);
+		particle.x += particle.vx * delta;
+		particle.y += particle.vy * delta;
+		particle.vy += 0.00004;
+		particle.ttl -= delta;
+		if (particle.ttl <= 0) {
+			particles.splice(i, 1);
+		}
+	};
+
+	if (player.immuneCounter == 0 && entities.find(e => e.x == player.x && e.y == player.y && e.group == 'unicorn')) {
+		player.energy -= 40;
+		if (player.energy <= 0) {
+			player.energy = 0;
+			levelCounter++;
+			initLevel(levelCounter);
+		}
+		updateEnergyBar();
+		player.immuneCounter = 1500;
+	}
+	player.immuneCounter = Math.max(0, player.immuneCounter - delta);
+
+	requestAnimationFrame(render);
+}
+
+requestAnimationFrame(render);
+
+
+//-------------------------------------------------
+function initLevel(level) {
+	lastTime = null;
+
+	player = new Entity('player');
+	player.immuneCounter = 0;
+
+	entities = [player];
 
 
 	for (let i = 0; i < 3; i++) {
@@ -180,23 +262,7 @@ function initLevel() {
 	}
 
 
-	function renderTile(x, y, tile) {
-		let frame = 0;
-		const img = tile.wall? images.wall : images.floor;
-
-		renderSprite(img, x, y, frame);
-
-		if (tile.button) {
-			frame = map.tile(tile.button.target.x, tile.button.target.y).blockade? 0 : 1;
-		}
-
-		itemKinds.forEach(kind => {
-			if (directMovables.includes(kind) || indirectMovables.includes(kind)) return;
-			if (tile[kind])	renderSprite(images[kind], x, y, frame);
-		});
-	}
-
-	const map = Map((x, y) => ({
+	map = Map((x, y) => ({
 		x, y,
 		fire: 0,
 		wall: null,
@@ -222,7 +288,7 @@ function initLevel() {
 		}
 	}
 
-	function burn(tile) {
+	burn = (tile) => {
 		tile.fire = 1;
 		if (tile.poo || tile.crate || tile.mine || tile.barrel) {
 			explodeAnimation(tile.x, tile.y);
@@ -284,61 +350,6 @@ function initLevel() {
 
 	putItem(2, 2, 'poo');
 
-	let lastTime;
-	function render(time) {
-		const delta = lastTime? time - lastTime : 16;
-		lastTime = time;
-
-		for (const {x, y} of map) {
-			renderTile(x, y, map.tile(x, y));
-		}
-		entities.forEach(entity => {
-			renderEntity(entity);
-			entity.transition += delta * entity.speed;
-			if (entity.transition >= 1.0) {
-				entity.transition = 1.0;
-			}
-			if (entity.transition == 1.0) {
-				entity.update(map, burn);
-			}
-		});
-
-		for (const {x, y} of map) {
-			const tile = map.tile(x, y);
-			if (tile.fire > 0) {
-				const frame = animLoopCounter % 3;
-				renderSprite(tile.fire == FULL_FIRE? images.fire : images.fire_small, x, y, frame);
-			}
-		}
-
-		for (let i = particles.length - 1; i >= 0; i--) {
-			const particle = particles[i];
-			ctx.fillStyle = particle.color;
-			ctx.fillRect(particle.x * TILE_SIZE - particle.size / 2, particle.y * TILE_SIZE - particle.size / 2, particle.size, particle.size);
-			particle.x += particle.vx * delta;
-			particle.y += particle.vy * delta;
-			particle.vy += 0.00004;
-			particle.ttl -= delta;
-			if (particle.ttl <= 0) {
-				particles.splice(i, 1);
-			}
-		};
-
-		if (player.immuneCounter == 0 && entities.find(e => e.x == player.x && e.y == player.y && e.group == 'unicorn')) {
-			player.energy -= 40;
-			if (player.energy <= 0) {
-				player.energy = 0;
-			}
-			updateEnergyBar();
-			player.immuneCounter = 1500;
-		}
-		player.immuneCounter = Math.max(0, player.immuneCounter - delta);
-
-
-		requestAnimationFrame(render);
-	}
-
-	requestAnimationFrame(render);
 
 	setInterval(() => {
 		for (const {x, y} of map) {
@@ -495,4 +506,4 @@ function initLevel() {
 
 }
 
-initLevel();
+initLevel(levelCounter);
