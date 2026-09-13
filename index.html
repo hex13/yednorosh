@@ -1,5 +1,10 @@
 <html>
 <div id="app"></div>
+<div id="keyboard-legend">
+	<div><b>movement: </b> arrows</div>
+	<div><b>fire: </b>hold space and press arrow to fire in specific direction</div>
+</div>
+<div>
 energy: <div class="energy-wrapper">
 	<div class="energy"></div>
 </div>
@@ -19,6 +24,11 @@ energy: <div class="energy-wrapper">
 	body {
 		font-family: sans-serif;
 		font-size: 20px;
+	}
+	#keyboard-legend {
+		display: inline-block;
+		padding: 4px;
+		border: 1px dotted grey;
 	}
 	canvas {
 		background: #600;
@@ -68,6 +78,5 @@ energy: <div class="energy-wrapper">
 	.joysticks > div {
 		padding: 20px;
 	}
-
 </style>
 </html>

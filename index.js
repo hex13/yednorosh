@@ -7,6 +7,8 @@ const MAP_HEIGHT = 12;
 
 if (!navigator.maxTouchPoints) {
 	document.querySelector('.joysticks').style.display = 'none';
+} else {
+	document.querySelector('#keyboard-legend').style.display = 'none';
 }
 
 const { cos, sin, random, abs, PI} = Math;
