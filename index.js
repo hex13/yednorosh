@@ -156,318 +156,322 @@ function renderSprite(img, x, y, frame = 0) {
 
 //-------------------------------------------------------------------------------------------
 
-const particles = [];
+function initLevel() {
+	const particles = [];
 
 
-const player = new Entity('player');
-const entities = [player];
+	const player = new Entity('player');
+	const entities = [player];
 
-for (let i = 0; i < 3; i++) {
-	const npc = new Entity('unicorn')
-	npc.x = 3 + i;
-	npc.y = 5 + i;
-	entities.push(npc);
-}
-
-
-function renderTile(x, y, tile) {
-	let frame = 0;
-	const img = tile.wall? images.wall : images.floor;
-
-	renderSprite(img, x, y, frame);
-
-	if (tile.button) {
-		frame = map.tile(tile.button.target.x, tile.button.target.y).blockade? ~~(animLoopCounter / 3) % 2 : 2;
+	for (let i = 0; i < 3; i++) {
+		const npc = new Entity('unicorn')
+		npc.x = 3 + i;
+		npc.y = 5 + i;
+		entities.push(npc);
 	}
 
-	itemKinds.forEach(kind => {
-		if (directMovables.includes(kind) || indirectMovables.includes(kind)) return;
-		if (tile[kind])	renderSprite(images[kind], x, y, frame);
-	});
-}
 
-const map = Map((x, y) => ({
-	x, y,
-	fire: 0,
-	wall: null,
-	updates: {
-		fire: 0,
-	},
-}));
+	function renderTile(x, y, tile) {
+		let frame = 0;
+		const img = tile.wall? images.wall : images.floor;
 
-putItem(5, 3, 'barrel');
+		renderSprite(img, x, y, frame);
 
+		if (tile.button) {
+			frame = map.tile(tile.button.target.x, tile.button.target.y).blockade? ~~(animLoopCounter / 3) % 2 : 2;
+		}
 
-function explodeAnimation(x, y) {
-	const count = 6;
-	for (let i = 0; i < count; i++) {
-		const angle = PI * 2 * i / count;
-		particles.push({
-			x: x + 0.5, y: y + 0.3,
-			vx: cos(angle) * 0.0006, vy: sin(angle) * 0.0005 - 0.00010,
-			ttl: 600,
-			color: '#fff',
-			size: i % 2 == 0? 4 : 2,
+		itemKinds.forEach(kind => {
+			if (directMovables.includes(kind) || indirectMovables.includes(kind)) return;
+			if (tile[kind])	renderSprite(images[kind], x, y, frame);
 		});
 	}
-}
 
-function burn(tile) {
-	tile.fire = 1;
-	if (tile.poo || tile.crate || tile.mine || tile.barrel) {
-		explodeAnimation(tile.x, tile.y);
-		setTimeout(() => {
-			movables.forEach(kind => {
-				if (tile[kind] instanceof Entity) {
-					removeEntity(tile[kind]);
-					tile[kind] = null;
-				}
+	const map = Map((x, y) => ({
+		x, y,
+		fire: 0,
+		wall: null,
+		updates: {
+			fire: 0,
+		},
+	}));
+
+	putItem(5, 3, 'barrel');
+
+
+	function explodeAnimation(x, y) {
+		const count = 6;
+		for (let i = 0; i < count; i++) {
+			const angle = PI * 2 * i / count;
+			particles.push({
+				x: x + 0.5, y: y + 0.3,
+				vx: cos(angle) * 0.0006, vy: sin(angle) * 0.0005 - 0.00010,
+				ttl: 600,
+				color: '#fff',
+				size: i % 2 == 0? 4 : 2,
 			});
-		}, 1000);
-		tile.fire = FULL_FIRE;
-	}
-	if (tile.barrel) {
-		for (const npos of map.neighbors8(tile.x, tile.y)) {
-			const neighbor = map.tile(npos.x, npos.y);
-			burn(neighbor);
-			neighbor.fire = FULL_FIRE;
 		}
 	}
 
-	const entity = findEntity(tile);
-	if (entity && entity.group == 'unicorn') {
-		entity.dead = true;
-		setTimeout(() => {
-			explodeAnimation(entity.x, entity.y);
-			removeEntity(entity);
-		}, 1000);
-		tile.fire = FULL_FIRE;
-	}
-}
-const findEntity = (tile) => entities.find(e => e.x == tile.x && e.y == tile.y);
-
-function removeEntity(entity) {
-	const idx = entities.indexOf(entity);
-	if (idx != -1) {
-		entities.splice(idx, 1);
-	}
-}
-
-for (let y = 3; y <= 10; y++) {
-	map.tile(10, y).wall = true;
-}
-
-
-function putItem(x, y, kind) {
-	const entity = new Entity(kind, x, y);
-	map.tile(x, y)[kind] = entity;
-	entities.push(entity);
-}
-
-putItem(1, 2, 'crate');
-putItem(6, 2, 'crate');
-putItem(5, 2, 'mine');
-
-map.tile(7, 3).button = {target: {x: 2, y: 7}};
-
-map.tile(2, 7).blockade = true;
-
-putItem(2, 2, 'poo');
-
-let lastTime;
-function render(time) {
-	const delta = lastTime? time - lastTime : 16;
-	lastTime = time;
-
-	for (const {x, y} of map) {
-		renderTile(x, y, map.tile(x, y));
-	}
-	entities.forEach(entity => {
-		renderEntity(entity);
-		entity.transition += delta * entity.speed;
-		if (entity.transition >= 1.0) {
-			entity.transition = 1.0;
+	function burn(tile) {
+		tile.fire = 1;
+		if (tile.poo || tile.crate || tile.mine || tile.barrel) {
+			explodeAnimation(tile.x, tile.y);
+			setTimeout(() => {
+				movables.forEach(kind => {
+					if (tile[kind] instanceof Entity) {
+						removeEntity(tile[kind]);
+						tile[kind] = null;
+					}
+				});
+			}, 1000);
+			tile.fire = FULL_FIRE;
 		}
-		if (entity.transition == 1.0) {
-			entity.update(map);
-		}
-	});
-
-	for (const {x, y} of map) {
-		const tile = map.tile(x, y);
-		if (tile.fire > 0) {
-			const frame = animLoopCounter % 3;
-			renderSprite(tile.fire == FULL_FIRE? images.fire : images.fire_small, x, y, frame);
-		}
-	}
-
-	for (let i = particles.length - 1; i >= 0; i--) {
-		const particle = particles[i];
-		ctx.fillStyle = particle.color;
-		ctx.fillRect(particle.x * TILE_SIZE - particle.size / 2, particle.y * TILE_SIZE - particle.size / 2, particle.size, particle.size);
-		particle.x += particle.vx * delta;
-		particle.y += particle.vy * delta;
-		particle.vy += 0.00004;
-		particle.ttl -= delta;
-		if (particle.ttl <= 0) {
-			particles.splice(i, 1);
-		}
-	};
-	requestAnimationFrame(render);
-}
-
-requestAnimationFrame(render);
-
-setInterval(() => {
-	for (const {x, y} of map) {
-		const tile = map.tile(x, y);
-		for (const npos of map.neighbors8(x, y)) {
-			const neighbor = map.tile(npos.x, npos.y);
-			if (neighbor.fire > 1 && neighbor.fire > tile.fire) tile.updates.fire = 1;
-		}
-		if (tile.fire > 0) tile.updates.fire -= 1;
-
-	}
-	for (const {x, y} of map) {
-		const tile = map.tile(x, y);
-		tile.fire += Math.sign(tile.updates.fire);
-		if (tile.updates.fire > 0) {
-			if (findEntity(tile)) {
-				burn(tile);
+		if (tile.barrel) {
+			for (const npos of map.neighbors8(tile.x, tile.y)) {
+				const neighbor = map.tile(npos.x, npos.y);
+				burn(neighbor);
+				neighbor.fire = FULL_FIRE;
 			}
 		}
-		tile.updates = {fire: 0};
+
+		const entity = findEntity(tile);
+		if (entity && entity.group == 'unicorn') {
+			entity.dead = true;
+			setTimeout(() => {
+				explodeAnimation(entity.x, entity.y);
+				removeEntity(entity);
+			}, 1000);
+			tile.fire = FULL_FIRE;
+		}
 	}
-}, 1200);
+	const findEntity = (tile) => entities.find(e => e.x == tile.x && e.y == tile.y);
 
-const keyboardState = {}
+	function removeEntity(entity) {
+		const idx = entities.indexOf(entity);
+		if (idx != -1) {
+			entities.splice(idx, 1);
+		}
+	}
 
-function handleKeyDown(e) {
-	if (Object.hasOwn(keymap, e.code)) {
-		keyboardState[e.code] = true;
+	for (let y = 3; y <= 10; y++) {
+		map.tile(10, y).wall = true;
+	}
 
-		const cmd = keymap[e.code];
-		switch (cmd) {
-			default:
-				if (keyboardState.Space) {
-					burn(map.tile(player.x + cmd.x, player.y + cmd.y));
-					burn(map.tile(player.x + cmd.x * 2, player.y + cmd.y * 2));
-					const speed = 0.006 + random() * 0.004 - 0.002;
-					const startX = player.x + 0.75;
-					const startY = player.y + 0.75;
-					const shootAngle = (Math.atan2(cmd.y, cmd.x) + PI * 2);
-					for (let i = 0; i < 10; i++) {
-						const angle = shootAngle - 0.2 + i * 0.04;
-						const size = abs(4.5 - i) * 2 + 2;
-						particles.push({
-							x: startX, y: startY,
-							vx: cos(angle) * speed * (random() * 0.3 + 0.85),
-							vy: sin(angle) * speed * (random() * 0.3 + 0.85) - 0.0005,
-							size,
-							ttl: 450,
-							color: size < 7 ? '#f4a741' : size < 10? '#d6824b' : '#d64b4b',
-						});
-					}
-				} else if (player.transition == 1.0) {
-					const nextTile = map.tile(player.x + cmd.x, player.y + cmd.y);
-					let canEnter = !nextTile.wall && !nextTile.blockade;
-					if (nextTile.button) {
-						const targetTile = map.tile(nextTile.button.target.x, nextTile.button.target.y);
-						targetTile.blockade = !targetTile.blockade;
-					}
-					directMovables.forEach(movableType => {
-						const movable = nextTile[movableType];
-						if (movable) {
-							const movableNextTile = map.tile(player.x + cmd.x * 2, player.y + cmd.y * 2);
-							if (directMovables.find(kind => movableNextTile[kind])) {
-								canEnter = false;
-							} else if (movableNextTile.wall || findEntity(movableNextTile)?.group == 'unicorn') {
-								canEnter = false;
-							}
-							if (canEnter) {
-								nextTile[movableType] = null;
-								movableNextTile[movableType] = movable;
-								movable.move(movableNextTile.x, movableNextTile.y);
 
-								indirectMovables.forEach(kind => {
-									if (movableNextTile[kind]) {
-										const movable = movableNextTile[kind];
-										movableNextTile[kind] = null;
-										const movableNextX = movableNextTile.x + cmd.x;
-										const movableNextY = movableNextTile.y + cmd.y;
-										map.tile(movableNextX, movableNextY)[kind] = movable;
-										if (movable instanceof Entity) {
-											movable.move(movableNextX, movableNextY);
+	function putItem(x, y, kind) {
+		const entity = new Entity(kind, x, y);
+		map.tile(x, y)[kind] = entity;
+		entities.push(entity);
+	}
+
+	putItem(1, 2, 'crate');
+	putItem(6, 2, 'crate');
+	putItem(5, 2, 'mine');
+
+	map.tile(7, 3).button = {target: {x: 2, y: 7}};
+
+	map.tile(2, 7).blockade = true;
+
+	putItem(2, 2, 'poo');
+
+	let lastTime;
+	function render(time) {
+		const delta = lastTime? time - lastTime : 16;
+		lastTime = time;
+
+		for (const {x, y} of map) {
+			renderTile(x, y, map.tile(x, y));
+		}
+		entities.forEach(entity => {
+			renderEntity(entity);
+			entity.transition += delta * entity.speed;
+			if (entity.transition >= 1.0) {
+				entity.transition = 1.0;
+			}
+			if (entity.transition == 1.0) {
+				entity.update(map);
+			}
+		});
+
+		for (const {x, y} of map) {
+			const tile = map.tile(x, y);
+			if (tile.fire > 0) {
+				const frame = animLoopCounter % 3;
+				renderSprite(tile.fire == FULL_FIRE? images.fire : images.fire_small, x, y, frame);
+			}
+		}
+
+		for (let i = particles.length - 1; i >= 0; i--) {
+			const particle = particles[i];
+			ctx.fillStyle = particle.color;
+			ctx.fillRect(particle.x * TILE_SIZE - particle.size / 2, particle.y * TILE_SIZE - particle.size / 2, particle.size, particle.size);
+			particle.x += particle.vx * delta;
+			particle.y += particle.vy * delta;
+			particle.vy += 0.00004;
+			particle.ttl -= delta;
+			if (particle.ttl <= 0) {
+				particles.splice(i, 1);
+			}
+		};
+		requestAnimationFrame(render);
+	}
+
+	requestAnimationFrame(render);
+
+	setInterval(() => {
+		for (const {x, y} of map) {
+			const tile = map.tile(x, y);
+			for (const npos of map.neighbors8(x, y)) {
+				const neighbor = map.tile(npos.x, npos.y);
+				if (neighbor.fire > 1 && neighbor.fire > tile.fire) tile.updates.fire = 1;
+			}
+			if (tile.fire > 0) tile.updates.fire -= 1;
+
+		}
+		for (const {x, y} of map) {
+			const tile = map.tile(x, y);
+			tile.fire += Math.sign(tile.updates.fire);
+			if (tile.updates.fire > 0) {
+				if (findEntity(tile)) {
+					burn(tile);
+				}
+			}
+			tile.updates = {fire: 0};
+		}
+	}, 1200);
+
+	const keyboardState = {}
+
+	function handleKeyDown(e) {
+		if (Object.hasOwn(keymap, e.code)) {
+			keyboardState[e.code] = true;
+
+			const cmd = keymap[e.code];
+			switch (cmd) {
+				default:
+					if (keyboardState.Space) {
+						burn(map.tile(player.x + cmd.x, player.y + cmd.y));
+						burn(map.tile(player.x + cmd.x * 2, player.y + cmd.y * 2));
+						const speed = 0.006 + random() * 0.004 - 0.002;
+						const startX = player.x + 0.75;
+						const startY = player.y + 0.75;
+						const shootAngle = (Math.atan2(cmd.y, cmd.x) + PI * 2);
+						for (let i = 0; i < 10; i++) {
+							const angle = shootAngle - 0.2 + i * 0.04;
+							const size = abs(4.5 - i) * 2 + 2;
+							particles.push({
+								x: startX, y: startY,
+								vx: cos(angle) * speed * (random() * 0.3 + 0.85),
+								vy: sin(angle) * speed * (random() * 0.3 + 0.85) - 0.0005,
+								size,
+								ttl: 450,
+								color: size < 7 ? '#f4a741' : size < 10? '#d6824b' : '#d64b4b',
+							});
+						}
+					} else if (player.transition == 1.0) {
+						const nextTile = map.tile(player.x + cmd.x, player.y + cmd.y);
+						let canEnter = !nextTile.wall && !nextTile.blockade;
+						if (nextTile.button) {
+							const targetTile = map.tile(nextTile.button.target.x, nextTile.button.target.y);
+							targetTile.blockade = !targetTile.blockade;
+						}
+						directMovables.forEach(movableType => {
+							const movable = nextTile[movableType];
+							if (movable) {
+								const movableNextTile = map.tile(player.x + cmd.x * 2, player.y + cmd.y * 2);
+								if (directMovables.find(kind => movableNextTile[kind])) {
+									canEnter = false;
+								} else if (movableNextTile.wall || findEntity(movableNextTile)?.group == 'unicorn') {
+									canEnter = false;
+								}
+								if (canEnter) {
+									nextTile[movableType] = null;
+									movableNextTile[movableType] = movable;
+									movable.move(movableNextTile.x, movableNextTile.y);
+
+									indirectMovables.forEach(kind => {
+										if (movableNextTile[kind]) {
+											const movable = movableNextTile[kind];
+											movableNextTile[kind] = null;
+											const movableNextX = movableNextTile.x + cmd.x;
+											const movableNextY = movableNextTile.y + cmd.y;
+											map.tile(movableNextX, movableNextY)[kind] = movable;
+											if (movable instanceof Entity) {
+												movable.move(movableNextX, movableNextY);
+											}
 										}
-									}
-								})
+									})
+								}
 							}
+
+						});
+						if (nextTile.fire == 0 && canEnter) {
+							player.move(player.x + cmd.x, player.y + cmd.y);
 						}
 
-					});
-					if (nextTile.fire == 0 && canEnter) {
-						player.move(player.x + cmd.x, player.y + cmd.y);
 					}
-
-				}
+			}
+			e.preventDefault && e.preventDefault();
 		}
-		e.preventDefault && e.preventDefault();
-	}
-};
+	};
 
-function handleKeyUp(e) {
-	if (Object.hasOwn(keymap, e.code)) {
-		keyboardState[e.code] = false;
+	function handleKeyUp(e) {
+		if (Object.hasOwn(keymap, e.code)) {
+			keyboardState[e.code] = false;
+		}
+
 	}
+	document.addEventListener('keydown', handleKeyDown);
+	document.addEventListener('keyup', handleKeyUp);
+
+	function initJoystick(el, action) {
+		const joystick = el;
+		let joystickStart = null;
+		joystick.addEventListener('pointerdown', (e) => {
+			joystickStart = {x: e.clientX, y: e.clientY};
+
+		});
+		joystick.addEventListener('pointermove', (e) => {
+			e.preventDefault();
+			if (joystickStart) {
+				const deltaX = e.clientX - joystickStart.x;
+				const deltaY = e.clientY - joystickStart.y;
+				let code = '';
+				if (abs(deltaX) >= abs(deltaY)) {
+					if (deltaX < 0) {
+						code = 'ArrowLeft';
+					} else if (deltaX > 0) {
+						code = 'ArrowRight';
+					}
+				} else {
+					if (deltaY < 0) {
+						code = 'ArrowUp';
+					} else if (deltaY > 0) {
+						code = 'ArrowDown';
+					}
+				}
+
+				if (action == 'fire') {
+					keyboardState.Space = true;
+				}
+
+				handleKeyDown({code})
+
+				if (action == 'fire') {
+					keyboardState.Space = false;
+					joystickStart = false;
+				}
+			}
+		});
+		joystick.addEventListener('pointerup', (e) => {
+			joystickStart = null;
+		});
+	}
+
+	initJoystick(document.getElementById('joystick-movement'), 'movement');
+	initJoystick(document.getElementById('joystick-fire'), 'fire');
 
 }
-document.addEventListener('keydown', handleKeyDown);
-document.addEventListener('keyup', handleKeyUp);
 
-function initJoystick(el, action) {
-	const joystick = el;
-	let joystickStart = null;
-	joystick.addEventListener('pointerdown', (e) => {
-		joystickStart = {x: e.clientX, y: e.clientY};
-
-	});
-	joystick.addEventListener('pointermove', (e) => {
-		e.preventDefault();
-		if (joystickStart) {
-			const deltaX = e.clientX - joystickStart.x;
-			const deltaY = e.clientY - joystickStart.y;
-			let code = '';
-			if (abs(deltaX) >= abs(deltaY)) {
-				if (deltaX < 0) {
-					code = 'ArrowLeft';
-				} else if (deltaX > 0) {
-					code = 'ArrowRight';
-				}
-			} else {
-				if (deltaY < 0) {
-					code = 'ArrowUp';
-				} else if (deltaY > 0) {
-					code = 'ArrowDown';
-				}
-			}
-
-			if (action == 'fire') {
-				keyboardState.Space = true;
-			}
-
-			handleKeyDown({code})
-
-			if (action == 'fire') {
-				keyboardState.Space = false;
-				joystickStart = false;
-			}
-		}
-	});
-	joystick.addEventListener('pointerup', (e) => {
-		joystickStart = null;
-	});
-}
-
-initJoystick(document.getElementById('joystick-movement'), 'movement');
-initJoystick(document.getElementById('joystick-fire'), 'fire');
-
+initLevel();
